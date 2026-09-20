@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>MEMORY HACK Mobile</title>
+  
+  <!-- PWA & Mobile Web App Meta -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a0e17">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="assets/icon.png">
+  <link rel="icon" type="image/png" href="assets/icon.png">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/mobile.css">
+</head>
+<body>
+
+  <div id="app-container">
+
+    <!-- PWA Install Banner -->
+    <div id="pwa-install-banner" class="pwa-banner hidden">
+      <span>📱 ホーム画面に追加してアプリとして使えます</span>
+      <button class="btn-install-pwa" onclick="App.installPwa()">追加</button>
+    </div>
+
+    <!-- 1. Top Bar -->
+    <header class="top-bar">
+      <div class="brand-section">
+        <span class="brand-logo">⚔️</span>
+        <span class="brand-title">MEMORY HACK</span>
+      </div>
+
+      <div class="top-actions">
+        <!-- 同期ボタン -->
+        <button id="btn-sync" class="sync-btn" onclick="SyncManager.pullDeck()" title="Master Systemからカードを取得">
+          <span id="sync-status-badge" class="sync-badge"></span>
+          <span id="sync-status-label">同期</span>
+        </button>
+
+        <!-- 設定ボタン -->
+        <button class="icon-btn" onclick="App.openSettingsModal()" title="設定">
+          ⚙️
+        </button>
+      </div>
+    </header>
+
+    <!-- 2. Control & Filter Strip -->
+    <section class="control-strip">
+      <div class="strip-row-1">
+        <!-- デッキ選択 -->
+        <div class="deck-select-wrap">
+          <select id="deck-select" class="mobile-select">
+            <option value="all">読み込み中...</option>
+          </select>
+        </div>
+
+        <!-- パターン選択ボタン -->
+        <button class="pattern-chip-btn" onclick="App.openModal('modal-patterns')">
+          <span>🎯 パターン:</span>
+          <span id="pattern-btn-count">6/6</span>
+        </button>
+      </div>
+
+      <div class="strip-row-2">
+        <!-- 単語/文章フィルター -->
+        <div class="type-filter-group">
+          <button class="type-filter-btn active" data-type="all">すべて</button>
+          <button class="type-filter-btn" data-type="word">単語</button>
+          <button class="type-filter-btn" data-type="sentence">文章</button>
+        </div>
+
+        <!-- 進捗情報 -->
+        <div class="session-stats-info">
+          <span id="session-progress-text">0 / 0</span>
+          <span id="session-accuracy-text" class="stat-acc">100% 正解</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Progress Bar -->
+    <div class="progress-container">
+      <div id="session-progress-bar" class="progress-bar-fill"></div>
+    </div>
+
+    <!-- 4. Main Stage (Card) -->
+    <main class="stage-container">
+      <div id="card-stage">
+        <!-- JavaScript (StudyManager) により動的レンダリング -->
+      </div>
+    </main>
+
+    <!-- 5. Bottom Action Bar (Thumb Reach Zone) -->
+    <footer id="bottom-action-bar" class="bottom-bar">
+      <!-- JavaScript (StudyManager) により動的レンダリング (FLIP / ⭕ / ❌) -->
+    </footer>
+
+  </div>
+
+  <!-- ========================================================================
+       MODAL: 出題パターン設定 (6種類)
+       ======================================================================== -->
+  <div id="modal-patterns" class="modal-overlay hidden" onclick="App.closeModal('modal-patterns')">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">🎯 出題パターンの選択 (全6種)</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('modal-patterns')">✕</button>
+      </div>
+
+      <div class="pattern-grid">
+        <label class="pattern-item">
+          <input type="checkbox" name="pattern_checkbox" value="en_to_ja" checked>
+          <span class="pattern-label">⚔️ 英語 ➔ 日本語 (意味暗記)</span>
+        </label>
+        <label class="pattern-item">
+          <input type="checkbox" name="pattern_checkbox" value="ja_to_en" checked>
+          <span class="pattern-label">🛡️ 日本語 ➔ 英語 (英作文・想起)</span>
+        </label>
+        <label class="pattern-item">
+          <input type="checkbox" name="pattern_checkbox" value="audio_to_ja" checked>
+          <span class="pattern-label">🎧 音声リスニング ➔ 日本語</span>
+        </label>
+        <label class="pattern-item">
+          <input type="checkbox" name="pattern_checkbox" value="audio_to_en" checked>
+          <span class="pattern-label">✍️ 音声ディクテーション ➔ 英語</span>
+        </label>
+        <label class="pattern-item">
+          <input type="checkbox" name="pattern_checkbox" value="ja_to_audio" checked>
+          <span class="pattern-label">🗣️ 日本語 ➔ 正しい発音確認</span>
+        </label>
+        <label class="pattern-item">
+          <input type="checkbox" name="pattern_checkbox" value="en_to_audio" checked>
+          <span class="pattern-label">🔊 英語 ➔ ネイティブ発音チェック</span>
+        </label>
+      </div>
+
+      <div class="modal-actions-bar">
+        <button class="btn-modal-action" onclick="App.toggleAllPatterns(true)">すべて選択</button>
+        <button class="btn-modal-action" onclick="App.toggleAllPatterns(false)">全解除 (英➔日のみ)</button>
+        <button class="btn-modal-action primary" onclick="App.closeModal('modal-patterns')">決定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: 設定 (Webhook URL / 音声など)
+       ======================================================================== -->
+  <div id="modal-settings" class="modal-overlay hidden" onclick="App.closeModal('modal-settings')">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">⚙️ 設定</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('modal-settings')">✕</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Master System (GAS Webhook URL)</label>
+        <input type="url" id="setting-webhook-url" class="form-input" placeholder="https://script.google.com/macros/s/..." />
+        <small style="color: var(--color-text-muted); font-size: 0.7rem; margin-top: 2px;">
+          ※ 親PC（Master System）と同じGAS URLを指定することで、カードデータが自動受信されます。
+        </small>
+      </div>
+
+      <div class="form-group" style="margin-top: 0.5rem;">
+        <label class="form-checkbox-label">
+          <input type="checkbox" id="setting-auto-audio" checked />
+          <span>🔊 音声を自動再生する (リスニング出題時・解答表示時)</span>
+        </label>
+      </div>
+
+      <div class="modal-actions-bar" style="margin-top: 1rem;">
+        <button class="btn-modal-action" onclick="App.closeModal('modal-settings')">キャンセル</button>
+        <button class="btn-modal-action primary" onclick="App.saveSettings()">保存する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="app-toast" class="toast"></div>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/sync.js"></script>
+  <script src="js/study.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
