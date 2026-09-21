@@ -384,6 +384,7 @@ const StudyManager = {
 
     if (this.currentIndex < this.queue.length - 1) {
       this.currentIndex++;
+      this.currentCard = this.queue[this.currentIndex];
       this.isFlipped = false;
       this.showAdvice = false;
       this.pickCurrentPattern();
@@ -408,6 +409,7 @@ const StudyManager = {
 
     if (this.currentIndex > 0) {
       this.currentIndex--;
+      this.currentCard = this.queue[this.currentIndex];
       this.isFlipped = false;
       this.showAdvice = false;
       this.pickCurrentPattern();

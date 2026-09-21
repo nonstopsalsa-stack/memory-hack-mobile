@@ -6,7 +6,7 @@ const App = {
   deferredPrompt: null,
 
   async init() {
-    console.log('[App] MEMORY HACK Mobile v1.1.0 Initializing...');
+    console.log('[App] MEMORY HACK Mobile v1.1.1 Initializing...');
 
     // 1. 各マネージャーの初期化
     if (typeof AudioManager !== 'undefined') AudioManager.init();
