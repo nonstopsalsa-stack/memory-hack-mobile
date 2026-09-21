@@ -6,12 +6,15 @@ const App = {
   deferredPrompt: null,
 
   async init() {
-    console.log('[App] MEMORY HACK Mobile v1.1.1 Initializing...');
+    console.log('[App] MEMORY HACK Mobile v1.1.2 Initializing...');
 
     // 1. 各マネージャーの初期化
     if (typeof AudioManager !== 'undefined') AudioManager.init();
     if (typeof SyncManager !== 'undefined') await SyncManager.init();
     if (typeof StudyManager !== 'undefined') await StudyManager.init();
+
+    // 起動トースト表示
+    this.showToast('🚀 MEMORY HACK Mobile v1.1.2 準備完了', 'info');
 
     // 2. イベントリスナー登録
     this.bindEvents();
@@ -195,6 +198,24 @@ const App = {
       }).catch((err) => {
         console.warn('[SW] Registration failed:', err);
       });
+    }
+  },
+
+  // キャッシュを完全に全削除して最新版を再取得
+  async forceRefresh() {
+    if (confirm('すべてのオフラインキャッシュを消去して最新版を取得しますか？')) {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const r of regs) {
+          await r.unregister();
+        }
+      }
+      const cleanUrl = window.location.origin + window.location.pathname + '?reload=' + Date.now();
+      window.location.href = cleanUrl;
     }
   }
 };
