@@ -6,7 +6,7 @@ const App = {
   deferredPrompt: null,
 
   async init() {
-    console.log('[App] MEMORY HACK Mobile Initializing...');
+    console.log('[App] MEMORY HACK Mobile v1.1.0 Initializing...');
 
     // 1. 各マネージャーの初期化
     if (typeof AudioManager !== 'undefined') AudioManager.init();
@@ -29,17 +29,6 @@ const App = {
   },
 
   bindEvents() {
-    // デッキ選択変更
-    const deckSelect = document.getElementById('deck-select');
-    if (deckSelect) {
-      deckSelect.addEventListener('change', async (e) => {
-        StudyManager.selectedDeck = e.target.value;
-        await Storage.saveSetting('study_selected_deck', e.target.value);
-        StudyManager.buildQueue();
-        StudyManager.showNextCard();
-      });
-    }
-
     // 単語/文章フィルターボタン
     const filterBtns = document.querySelectorAll('.type-filter-btn');
     filterBtns.forEach(btn => {
@@ -49,7 +38,7 @@ const App = {
         const filterType = btn.dataset.type;
         StudyManager.itemTypeFilter = filterType;
         await Storage.saveSetting('study_item_type_filter', filterType);
-        StudyManager.buildQueue();
+        await StudyManager.buildQueue();
         StudyManager.showNextCard();
       });
     });
@@ -70,7 +59,7 @@ const App = {
       });
     });
 
-    // キーボードショートカット（PCブラウザ検証時用）
+    // キーボードショートカット（PCブラウザ検証・外部キーボード操作用）
     document.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
 
@@ -81,10 +70,34 @@ const App = {
         if (StudyManager.isFlipped) StudyManager.recordAnswer(false);
       } else if (e.code === 'ArrowRight' || e.key === '2') {
         if (StudyManager.isFlipped) StudyManager.recordAnswer(true);
+      } else if (e.code === 'ArrowUp' || e.key === '[') {
+        e.preventDefault();
+        StudyManager.goToPrevCardWithoutGrading();
+      } else if (e.code === 'ArrowDown' || e.key === ']') {
+        e.preventDefault();
+        StudyManager.goToNextCardWithoutGrading();
       } else if (e.key === 'r' || e.key === 'R') {
         StudyManager.playCardAudio();
       }
     });
+  },
+
+  // デッキツリー階層選択ボトムシートのオープン
+  openHierarchyModal() {
+    const container = document.getElementById('hierarchy-tree-container');
+    if (container && typeof Hierarchy !== 'undefined') {
+      Hierarchy.renderTreeSheet(
+        container,
+        StudyManager.cards,
+        StudyManager.selectedFilter,
+        async (filter) => {
+          await StudyManager.setHierarchyFilter(filter);
+          this.closeModal('modal-hierarchy');
+          this.showToast(`📚 「${Hierarchy.formatBreadcrumb(filter)}」を選択しました`, 'info');
+        }
+      );
+    }
+    this.openModal('modal-hierarchy');
   },
 
   // モーダル操作
@@ -125,11 +138,6 @@ const App = {
       const url = urlInput.value.trim();
       await Storage.saveSetting('webhookUrl', url);
       SyncManager.syncUrl = url;
-    }
-
-    const autoSyncCb = document.getElementById('setting-auto-sync');
-    if (autoSyncCb) {
-      await Storage.saveSetting('autoSyncEnabled', autoSyncCb.checked);
     }
 
     const autoAudioCb = document.getElementById('setting-auto-audio');

@@ -87,6 +87,18 @@ html, body {
   -webkit-text-fill-color: transparent;
 }
 
+.brand-ver-badge {
+  font-size: 0.62rem;
+  font-weight: 800;
+  background: rgba(0, 240, 255, 0.12);
+  color: var(--color-cyan);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  padding: 1px 5px;
+  border-radius: 4px;
+  letter-spacing: 0;
+  margin-left: 2px;
+}
+
 .top-actions {
   display: flex;
   align-items: center;
@@ -177,6 +189,61 @@ html, body {
 
 .deck-select-wrap {
   flex: 1;
+  min-width: 0;
+}
+
+.deck-chip-btn {
+  width: 100%;
+  background: #151d2f;
+  border: 1px solid var(--border-color);
+  color: var(--color-text-main);
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  min-width: 0;
+}
+
+.deck-chip-btn:active {
+  border-color: var(--color-cyan);
+  background: #1a243a;
+}
+
+.deck-label-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.dropdown-caret {
+  font-size: 0.62rem;
+  color: var(--color-text-muted);
+}
+
+.mode-select-wrap {
+  flex: 0 0 148px;
+  max-width: 155px;
+}
+
+.mode-select {
+  width: 100%;
+  background: #151d2f;
+  border: 1px solid var(--color-gold);
+  color: var(--color-gold);
+  padding: 0.42rem 0.45rem;
+  border-radius: 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
 }
 
 .mobile-select {
@@ -196,8 +263,8 @@ html, body {
   border: 1px solid var(--color-gold);
   color: var(--color-gold);
   border-radius: 8px;
-  padding: 0.45rem 0.6rem;
-  font-size: 0.78rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
   font-weight: 700;
   white-space: nowrap;
   display: flex;
@@ -846,4 +913,344 @@ html, body {
   font-weight: 800;
   font-size: 0.75rem;
   cursor: pointer;
+}
+
+/* ==========================================================================
+   Bottom Sheet Modal (Hierarchy Tree & Mobile Ergonomics)
+   ========================================================================== */
+.bottom-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 85vh;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  border-top-left-radius: 20px !important;
+  border-top-right-radius: 20px !important;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.65);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.modal-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.modal-subtitle {
+  font-size: 0.7rem;
+  color: var(--color-text-sub);
+  font-weight: 500;
+}
+
+/* Hierarchy Tree Accordion Content */
+.hierarchy-tree-content {
+  overflow-y: auto;
+  max-height: calc(85vh - 75px);
+  padding: 0.6rem 0.4rem 2rem 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hierarchy-tree-item.all-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.12) 0%, rgba(26, 35, 54, 0.85) 100%);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hierarchy-tree-item.all-item.active {
+  border-color: var(--color-cyan);
+  box-shadow: 0 0 14px var(--color-cyan-glow);
+}
+
+.hierarchy-item-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.hierarchy-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.hierarchy-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hierarchy-item-name {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--color-text-main);
+}
+
+.hierarchy-item-sub {
+  font-size: 0.72rem;
+  color: var(--color-text-sub);
+}
+
+.hierarchy-item-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hierarchy-count-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #1a2336;
+  color: var(--color-cyan);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  padding: 2px 7px;
+  border-radius: 9999px;
+}
+
+.hierarchy-count-badge.tier2 {
+  color: var(--color-gold);
+  border-color: rgba(255, 184, 0, 0.3);
+}
+
+.hierarchy-count-badge.tier3 {
+  color: var(--color-text-sub);
+  border-color: var(--border-color);
+}
+
+.btn-tree-select, .btn-tier-select {
+  background: #1a2336;
+  border: 1px solid var(--border-color);
+  color: var(--color-text-main);
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.btn-tree-select.selected, .btn-tier-select.selected {
+  background: var(--color-cyan);
+  color: #0a0e17;
+  border-color: var(--color-cyan);
+  box-shadow: 0 0 8px var(--color-cyan-glow);
+}
+
+.btn-tier-select.tier2.selected {
+  background: var(--color-gold);
+  color: #0a0e17;
+  border-color: var(--color-gold);
+  box-shadow: 0 0 8px var(--color-gold-glow);
+}
+
+.hierarchy-tree-separator {
+  display: flex;
+  align-items: center;
+  margin: 0.5rem 0 0.2rem 0;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.hierarchy-tree-separator::before, .hierarchy-tree-separator::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px dashed var(--border-color);
+  margin: 0 0.5rem;
+}
+
+.hierarchy-tier1-group {
+  background: #121826;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+  transition: border-color 0.2s ease;
+}
+
+.hierarchy-tier1-group.open {
+  border-color: rgba(0, 240, 255, 0.35);
+}
+
+.hierarchy-tier1-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.85rem;
+  background: #151d2f;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.hierarchy-tier1-header.active {
+  background: rgba(0, 240, 255, 0.08);
+  border-left: 3px solid var(--color-cyan);
+}
+
+.hierarchy-tier-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex: 1;
+  user-select: none;
+}
+
+.accordion-arrow {
+  font-size: 0.7rem;
+  color: var(--color-text-sub);
+  width: 14px;
+  text-align: center;
+}
+
+.accordion-arrow.empty {
+  opacity: 0.4;
+}
+
+.hierarchy-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.hierarchy-tier2-container {
+  padding: 0.35rem 0.5rem 0.5rem 1rem;
+  background: #0d1320;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border-top: 1px solid rgba(38, 51, 77, 0.5);
+}
+
+.hierarchy-tier2-container.hidden {
+  display: none;
+}
+
+.hierarchy-tier2-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  background: #141c2c;
+  cursor: pointer;
+}
+
+.hierarchy-tier2-header.active {
+  background: rgba(255, 184, 0, 0.1);
+  border-left: 3px solid var(--color-gold);
+}
+
+.hierarchy-tier3-container {
+  padding: 0.25rem 0.3rem 0.4rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.hierarchy-tier3-container.hidden {
+  display: none;
+}
+
+.hierarchy-tier3-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(26, 35, 54, 0.4);
+}
+
+.hierarchy-tier3-item.active {
+  background: rgba(0, 240, 255, 0.12);
+  border-left: 2px solid var(--color-cyan);
+}
+
+/* ==========================================================================
+   Card Wrapper & Non-Grading Navigation (パラパラめくり / スワイプ)
+   ========================================================================== */
+.study-card-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  will-change: transform;
+}
+
+.card-browse-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.25rem 0.6rem;
+}
+
+.btn-browse-nav {
+  background: rgba(21, 29, 47, 0.9);
+  border: 1px solid var(--border-color);
+  color: var(--color-text-sub);
+  padding: 0.38rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.btn-browse-nav:active:not(.disabled) {
+  background: #26334d;
+  color: var(--color-cyan);
+  border-color: var(--color-cyan);
+}
+
+.btn-browse-nav.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.browse-counter {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.card-top-right {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.drill-mode-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid #ef4444;
+  padding: 1px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
 }

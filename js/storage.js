@@ -7,7 +7,9 @@ const Storage = {
     CARDS: 'memory_hack_mobile_cards',
     SETTINGS: 'memory_hack_mobile_settings',
     DECK_ORDER: 'memory_hack_mobile_deck_order',
-    LAST_SYNC: 'memory_hack_mobile_last_sync'
+    LAST_SYNC: 'memory_hack_mobile_last_sync',
+    TODAY_MISTAKES: 'memory_hack_mobile_today_mistakes',
+    FILTER_STATE: 'memory_hack_mobile_filter_state'
   },
 
   // 初期フォールバック用サンプルデータ
@@ -58,6 +60,17 @@ const Storage = {
       nextReviewDate: new Date().toISOString()
     }
   ],
+
+  /**
+   * 今日の日付キー取得 (YYYY-MM-DD)
+   */
+  getTodayKey() {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  },
 
   /**
    * 全カード取得
@@ -165,5 +178,161 @@ const Storage = {
       console.error('Storage.saveDeckOrder failed:', e);
       return false;
     }
+  },
+
+  // =========================================================================
+  // 本日誤答ストック管理 (誤答完全クリア特訓用)
+  // =========================================================================
+
+  /**
+   * 今日の誤答カード一覧を取得
+   * 日付が変わっていれば自動初期化
+   */
+  async getTodayMistakes() {
+    try {
+      const raw = localStorage.getItem(this.KEYS.TODAY_MISTAKES);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      const today = this.getTodayKey();
+
+      if (parsed && parsed.date === today && Array.isArray(parsed.mistakes)) {
+        return parsed.mistakes;
+      }
+      // 日付が昨日以前の場合はリセット
+      return [];
+    } catch (e) {
+      console.warn('Storage.getTodayMistakes failed:', e);
+      return [];
+    }
+  },
+
+  /**
+   * 今日の誤答カード一覧を保存
+   */
+  async saveTodayMistakes(mistakes) {
+    try {
+      const today = this.getTodayKey();
+      const payload = {
+        date: today,
+        mistakes: Array.isArray(mistakes) ? mistakes : []
+      };
+      localStorage.setItem(this.KEYS.TODAY_MISTAKES, JSON.stringify(payload));
+      return true;
+    } catch (e) {
+      console.error('Storage.saveTodayMistakes failed:', e);
+      return false;
+    }
+  },
+
+  /**
+   * 誤答を1枚ストックに追加（重複排除）
+   */
+  async recordTodayMistake(card, direction = 'standard') {
+    if (!card) return;
+    try {
+      const currentList = await this.getTodayMistakes();
+      const cardId = card.id || `${card.front}_${card.back}`;
+      const existingIdx = currentList.findIndex(m => (m.card && m.card.id === cardId) || m.id === cardId || m.cardId === cardId);
+
+      const entry = {
+        cardId: cardId,
+        id: cardId,
+        card: { ...card, id: cardId },
+        direction: direction,
+        recordedAt: Date.now()
+      };
+
+      if (existingIdx >= 0) {
+        currentList[existingIdx] = entry;
+      } else {
+        currentList.push(entry);
+      }
+
+      await this.saveTodayMistakes(currentList);
+    } catch (e) {
+      console.warn('Storage.recordTodayMistake failed:', e);
+    }
+  },
+
+  /**
+   * 特訓クリア等で誤答ストックから1枚削除
+   */
+  async removeTodayMistake(cardId) {
+    if (!cardId) return;
+    try {
+      const currentList = await this.getTodayMistakes();
+      const filtered = currentList.filter(m => {
+        const id = (m.card && m.card.id) || m.id || m.cardId;
+        return id !== cardId;
+      });
+      await this.saveTodayMistakes(filtered);
+    } catch (e) {
+      console.warn('Storage.removeTodayMistake failed:', e);
+    }
+  },
+
+  /**
+   * 本日の誤答ストックをクリア
+   */
+  async clearTodayMistakes() {
+    try {
+      localStorage.removeItem(this.KEYS.TODAY_MISTAKES);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  },
+
+  // =========================================================================
+  // 階層フィルター状態の永続化
+  // =========================================================================
+
+  /**
+   * 選択中の階層フィルターを取得
+   * { level1: 'all', level2: 'all', level3: 'all' }
+   */
+  async getFilterState() {
+    const defaultFilter = { level1: 'all', level2: 'all', level3: 'all' };
+    try {
+      const raw = localStorage.getItem(this.KEYS.FILTER_STATE);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          return {
+            level1: parsed.level1 || 'all',
+            level2: parsed.level2 || 'all',
+            level3: parsed.level3 || 'all'
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('Storage.getFilterState failed:', e);
+    }
+    return defaultFilter;
+  },
+
+  /**
+   * 階層フィルターを保存
+   */
+  async saveFilterState(filter) {
+    try {
+      const state = {
+        level1: filter?.level1 || 'all',
+        level2: filter?.level2 || 'all',
+        level3: filter?.level3 || 'all'
+      };
+      localStorage.setItem(this.KEYS.FILTER_STATE, JSON.stringify(state));
+      return true;
+    } catch (e) {
+      console.error('Storage.saveFilterState failed:', e);
+      return false;
+    }
   }
 };
+
+if (typeof window !== 'undefined') {
+  window.Storage = Storage;
+}
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = Storage;
+}

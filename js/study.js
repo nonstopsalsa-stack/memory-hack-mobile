@@ -1,6 +1,12 @@
 /**
  * study.js - MEMORY HACK Mobile 学習マネージャー
- * 出題パターン6種完全対応 & モバイル特有の片手操作・快適フリップ学習
+ * 
+ * 主要機能:
+ * 1. 3階層ジャンルフィルター連動 (Hierarchy.matchesFilter)
+ * 2. PCアプリ完全準拠の5大出題モード (due, all_random, weak, mistakes_today, sequence)
+ * 3. 解答なし前後移動（左右タッチスワイプ ＆ 前へ/次へナビゲーションボタン）
+ * 4. 忘却曲線 (SRS / SM-2) 計算と自動インターバル設定
+ * 5. 誤答完全クリア特訓 (サバイバルループ)
  */
 
 const StudyManager = {
@@ -12,12 +18,17 @@ const StudyManager = {
   isFlipped: false,
   showAdvice: false,
 
-  // 学習設定
+  // 学習フィルター & モード
+  selectedFilter: { level1: 'all', level2: 'all', level3: 'all' },
+  filterMode: 'all_random', // 'due' | 'all_random' | 'weak' | 'mistakes_today' | 'sequence'
+  itemTypeFilter: 'all',     // 'all' | 'word' | 'sentence'
   activePatterns: ['en_to_ja', 'ja_to_en', 'audio_to_ja', 'audio_to_en', 'ja_to_audio', 'en_to_audio'],
-  selectedDeck: 'all',
-  itemTypeFilter: 'all', // 'all' | 'word' | 'sentence'
-  filterMode: 'all_random', // 'all_random' | 'due' | 'weak'
   autoPlayAudio: true,
+
+  // 誤答完全クリア特訓用状態
+  isDrillMode: false,
+  drillRemainingIds: new Set(),
+  drillInitialTotal: 0,
 
   // セッション統計
   stats: {
@@ -27,53 +38,89 @@ const StudyManager = {
     sessionStartTime: null
   },
 
+  // スワイプ操作用座標追跡
+  touchState: {
+    startX: 0,
+    startY: 0,
+    currentX: 0,
+    isSwiping: false,
+    startTime: 0
+  },
+
   async init() {
     this.cards = await Storage.getAllCards();
-    
-    // 設定復元
+
+    // 1. 設定の復元
     const savedPatterns = await Storage.getSetting('study_active_patterns', null);
     if (savedPatterns && Array.isArray(savedPatterns) && savedPatterns.length > 0) {
       this.activePatterns = savedPatterns;
     }
-    this.selectedDeck = await Storage.getSetting('study_selected_deck', 'all');
-    this.itemTypeFilter = await Storage.getSetting('study_item_type_filter', 'all');
+
+    this.selectedFilter = await Storage.getFilterState();
     this.filterMode = await Storage.getSetting('study_filter_mode', 'all_random');
+    this.itemTypeFilter = await Storage.getSetting('study_item_type_filter', 'all');
     this.autoPlayAudio = await Storage.getSetting('study_auto_play_audio', true);
 
-    this.renderDeckSelector();
+    // 2. UI同期
+    this.updateDeckTriggerButton();
+    this.syncFilterModeUI();
     this.renderPatternSelector();
-    this.buildQueue();
+
+    // 3. 出題キュー構築 & 開始
+    await this.buildQueue();
     this.showNextCard();
+
+    // 4. スワイプイベントリスナーの登録
+    this.initSwipeListeners();
   },
 
   async onDeckLoaded(newCards) {
     this.cards = newCards;
-    this.renderDeckSelector();
-    this.buildQueue();
+    this.updateDeckTriggerButton();
+    await this.buildQueue();
     this.showNextCard();
   },
 
   /**
-   * デッキ選択ドロップダウンの描画
+   * デッキ選択トリガーボタンの表示更新
    */
-  renderDeckSelector() {
-    const select = document.getElementById('deck-select');
-    if (!select) return;
+  updateDeckTriggerButton() {
+    const labelEl = document.getElementById('deck-select-label');
+    if (labelEl) {
+      labelEl.innerText = Hierarchy.formatBreadcrumb(this.selectedFilter);
+    }
+  },
 
-    const decks = new Set();
-    this.cards.forEach(c => {
-      const d = c.deck || c.category1 || '未分類';
-      decks.add(d);
-    });
+  /**
+   * 出題モードセレクターのUI同期
+   */
+  syncFilterModeUI() {
+    const select = document.getElementById('study-filter-mode');
+    if (select) {
+      select.value = this.filterMode;
+    }
+  },
 
-    let html = `<option value="all">📚 すべてのデッキ (${this.cards.length}枚)</option>`;
-    decks.forEach(d => {
-      const count = this.cards.filter(c => (c.deck || c.category1 || '未分類') === d).length;
-      html += `<option value="${escapeHtml(d)}">${escapeHtml(d)} (${count}枚)</option>`;
-    });
+  /**
+   * 出題モード変更
+   */
+  async setFilterMode(mode) {
+    this.filterMode = mode;
+    await Storage.saveSetting('study_filter_mode', mode);
+    this.syncFilterModeUI();
+    await this.buildQueue();
+    this.showNextCard();
+  },
 
-    select.innerHTML = html;
-    select.value = this.selectedDeck;
+  /**
+   * 階層フィルター変更
+   */
+  async setHierarchyFilter(filter) {
+    this.selectedFilter = filter;
+    await Storage.saveFilterState(filter);
+    this.updateDeckTriggerButton();
+    await this.buildQueue();
+    this.showNextCard();
   },
 
   /**
@@ -93,17 +140,13 @@ const StudyManager = {
   },
 
   /**
-   * 出題キューの生成（フィルター & シャッフル）
+   * 出題キューの生成（5大モード完全対応）
    */
-  buildQueue() {
-    let filtered = [...this.cards];
+  async buildQueue() {
+    // 1. 3階層ジャンルフィルター適用
+    let filtered = this.cards.filter(c => Hierarchy.matchesFilter(c, this.selectedFilter));
 
-    // デッキフィルター
-    if (this.selectedDeck !== 'all') {
-      filtered = filtered.filter(c => (c.deck || c.category1 || '未分類') === this.selectedDeck);
-    }
-
-    // 単語/文章フィルター
+    // 2. 単語 / 文章フィルター適用
     if (this.itemTypeFilter === 'word') {
       filtered = filtered.filter(c => {
         const type = (c.itemType || '').toLowerCase();
@@ -120,20 +163,159 @@ const StudyManager = {
       });
     }
 
-    // 抽出モード
-    if (this.filterMode === 'weak') {
-      filtered.sort((a, b) => (a.repetitionLevel || 0) - (b.repetitionLevel || 0));
-    } else if (this.filterMode === 'all_random') {
-      for (let i = filtered.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+    // 3. 5大出題モード別のキュー選定
+    if (this.filterMode === 'mistakes_today') {
+      // 4. 誤答完全クリア特訓 (mistakes_today)
+      const mistakeItems = await Storage.getTodayMistakes();
+      if (mistakeItems.length === 0) {
+        this.isDrillMode = false;
+        this.queue = [];
+        this.currentIndex = 0;
+        this.renderEmptyState('🎉 素晴らしい！ 本日の誤答カードはありません。<br><small style="color:var(--color-text-sub); display:block; margin-top:0.4rem;">（通常学習で間違えたカードが出ると自動でここにストックされ、完全クリア特訓ができます）</small>');
+        return;
+      }
+
+      // 該当階層に絞り込み
+      let mistakeCards = mistakeItems.map(m => m.card || m);
+      if (this.selectedFilter && this.selectedFilter.level1 && this.selectedFilter.level1 !== 'all') {
+        mistakeCards = mistakeCards.filter(c => Hierarchy.matchesFilter(c, this.selectedFilter));
+      }
+
+      if (mistakeCards.length === 0) {
+        this.isDrillMode = false;
+        this.queue = [];
+        this.currentIndex = 0;
+        this.renderEmptyState(`🎉 選択中のデッキ（${Hierarchy.formatBreadcrumb(this.selectedFilter)}）には本日の誤答カードはありません！`);
+        return;
+      }
+
+      this.isDrillMode = true;
+      this.drillInitialTotal = mistakeCards.length;
+      this.drillRemainingIds = new Set(mistakeCards.map(c => c.id || `${c.front}_${c.back}`));
+      this.queue = this.shuffle([...mistakeCards]);
+
+    } else {
+      this.isDrillMode = false;
+      this.drillRemainingIds.clear();
+
+      if (filtered.length === 0) {
+        this.queue = [];
+        this.currentIndex = 0;
+        this.renderEmptyState(`📭 「${Hierarchy.formatBreadcrumb(this.selectedFilter)}」にはカードがありません。`);
+        return;
+      }
+
+      if (this.filterMode === 'due') {
+        // 1. 忘却曲線の期日順 (due)
+        const dueCards = filtered.filter(c => (typeof SRS !== 'undefined' ? SRS.isDue(c) : true));
+        if (dueCards.length === 0) {
+          // 期日到来カードがない場合、全問ランダムで学習を開始
+          if (typeof App !== 'undefined' && App.showToast) {
+            App.showToast('ℹ️ 本日復習期日のカードはありません。全問ランダムで開始します。', 'info');
+          }
+          this.queue = this.shuffle([...filtered]);
+        } else {
+          this.queue = this.shuffle([...dueCards]);
+        }
+
+      } else if (this.filterMode === 'weak') {
+        // 3. 苦手カード優先 (weak)
+        this.queue = [...filtered].sort((a, b) => {
+          const accA = typeof SRS !== 'undefined' ? SRS.getAccuracy(a) : 0;
+          const accB = typeof SRS !== 'undefined' ? SRS.getAccuracy(b) : 0;
+          if (accA !== accB) return accA - accB;
+          const streakA = (a.streak !== undefined ? a.streak : a.repetitionLevel) || 0;
+          const streakB = (b.streak !== undefined ? b.streak : b.repetitionLevel) || 0;
+          return streakA - streakB;
+        });
+
+      } else if (this.filterMode === 'sequence') {
+        // 5. シーケンス順出題 (sequence)
+        this.queue = this.buildSequenceQueue(filtered);
+        if (this.queue.length === 0) {
+          this.queue = this.shuffle([...filtered]);
+        }
+
+      } else {
+        // 2. 全問ランダム (all_random)
+        this.queue = this.shuffle([...filtered]);
       }
     }
 
-    this.queue = filtered;
     this.currentIndex = 0;
     this.stats = { totalAnswered: 0, correctCount: 0, wrongCount: 0, sessionStartTime: Date.now() };
     this.updateStatsUI();
+  },
+
+  /**
+   * シーケンスモード用の出題キューを構築（PCアプリ完全準拠）
+   */
+  buildSequenceQueue(cards) {
+    if (!cards || cards.length === 0) return [];
+
+    // 1. デッキごとにグループ化
+    const deckMap = new Map();
+    cards.forEach(c => {
+      Hierarchy.normalizeCard(c);
+      const dKey = c.deck || '一般';
+      if (!deckMap.has(dKey)) {
+        deckMap.set(dKey, []);
+      }
+      deckMap.get(dKey).push(c);
+    });
+
+    const sequenceSets = [];
+    const blankCards = [];
+
+    deckMap.forEach((deckCards) => {
+      const seqItems = [];
+      deckCards.forEach(c => {
+        const rawSeq = c.sequenceNo;
+        const num = (rawSeq !== undefined && rawSeq !== null && String(rawSeq).trim() !== '') ? Number(rawSeq) : null;
+        if (Number.isFinite(num) && num > 0) {
+          seqItems.push({ card: c, num });
+        } else {
+          blankCards.push(c);
+        }
+      });
+
+      if (seqItems.length > 0) {
+        seqItems.sort((a, b) => a.num - b.num);
+        sequenceSets.push(seqItems.map(item => item.card));
+      }
+    });
+
+    // シーケンスカードが1枚もない場合 ➔ 忘却曲線期日順 or シャッフル
+    if (sequenceSets.length === 0) {
+      const dueCards = cards.filter(c => (typeof SRS !== 'undefined' ? SRS.isDue(c) : true));
+      return dueCards.length > 0 ? this.shuffle([...dueCards]) : this.shuffle([...cards]);
+    }
+
+    // 2. 複数セット存在する場合、セット単位でランダムシャッフル
+    this.shuffle(sequenceSets);
+
+    // 3. 各セットを1〜Nまで展開してキューに結合
+    const finalQueue = [];
+    sequenceSets.forEach(set => {
+      finalQueue.push(...set);
+    });
+
+    // 4. 空欄カードがある場合、復習期日が到来しているものを末尾に追加
+    const dueBlankCards = blankCards.filter(c => (typeof SRS !== 'undefined' ? SRS.isDue(c) : false));
+    if (dueBlankCards.length > 0) {
+      dueBlankCards.sort((a, b) => new Date(a.dueDate || 0) - new Date(b.dueDate || 0));
+      finalQueue.push(...dueBlankCards);
+    }
+
+    return finalQueue;
+  },
+
+  shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
   },
 
   /**
@@ -141,7 +323,6 @@ const StudyManager = {
    */
   showNextCard() {
     if (this.queue.length === 0) {
-      this.renderEmptyState();
       return;
     }
 
@@ -184,11 +365,62 @@ const StudyManager = {
     this.isFlipped = true;
     this.renderCard();
 
-    // 裏面めくり時の自動発音（英語が答えの場合や確認）
     if (this.autoPlayAudio && (this.currentPattern === 'ja_to_en' || this.currentPattern === 'ja_to_audio' || this.currentPattern === 'en_to_audio')) {
       setTimeout(() => {
         this.playCardAudio();
       }, 200);
+    }
+  },
+
+  // =========================================================================
+  // 解答を選ばずに前後のカードへパラパラめくる機能（非破壊ナビゲーション）
+  // =========================================================================
+
+  /**
+   * 解答なしで「次のカード」へ移動（スワイプまたは次へボタン）
+   */
+  goToNextCardWithoutGrading() {
+    if (this.queue.length === 0) return;
+
+    if (this.currentIndex < this.queue.length - 1) {
+      this.currentIndex++;
+      this.isFlipped = false;
+      this.showAdvice = false;
+      this.pickCurrentPattern();
+      this.renderCard();
+      this.updateStatsUI();
+
+      if (this.autoPlayAudio && (this.currentPattern === 'audio_to_ja' || this.currentPattern === 'audio_to_en')) {
+        setTimeout(() => { this.playCardAudio(); }, 250);
+      }
+    } else {
+      if (typeof App !== 'undefined' && App.showToast) {
+        App.showToast('ℹ️ これが最後のカードです', 'info');
+      }
+    }
+  },
+
+  /**
+   * 解答なしで「前のカード」へ移動（スワイプまたは前へボタン）
+   */
+  goToPrevCardWithoutGrading() {
+    if (this.queue.length === 0) return;
+
+    if (this.currentIndex > 0) {
+      this.currentIndex--;
+      this.isFlipped = false;
+      this.showAdvice = false;
+      this.pickCurrentPattern();
+      this.renderCard();
+      this.updateStatsUI();
+
+      if (this.autoPlayAudio && (this.currentPattern === 'audio_to_ja' || this.currentPattern === 'audio_to_en')) {
+        setTimeout(() => { this.playCardAudio(); }, 250);
+      }
+    } else {
+      if (typeof App !== 'undefined' && App.showToast) {
+        App.showToast('ℹ️ 先頭のカードです', 'info');
+      }
     }
   },
 
@@ -199,22 +431,43 @@ const StudyManager = {
     if (!this.currentCard) return;
 
     this.stats.totalAnswered++;
+    const cardId = this.currentCard.id || `${this.currentCard.front}_${this.currentCard.back}`;
+
+    // 1. SRS (忘却曲線) パラメータ更新
+    if (typeof SRS !== 'undefined') {
+      this.currentCard = SRS.processReview(this.currentCard, isCorrect);
+    } else {
+      if (isCorrect) {
+        this.currentCard.repetitionLevel = (this.currentCard.repetitionLevel || 0) + 1;
+      } else {
+        this.currentCard.repetitionLevel = 0;
+      }
+    }
+
+    // 2. 正解 / 不正解処理 & 誤答ストック同期
     if (isCorrect) {
       this.stats.correctCount++;
-      this.currentCard.repetitionLevel = (this.currentCard.repetitionLevel || 0) + 1;
+
+      // 特訓モード中なら残り誤答リストからクリア
+      if (this.isDrillMode) {
+        this.drillRemainingIds.delete(cardId);
+        await Storage.removeTodayMistake(cardId);
+      }
     } else {
       this.stats.wrongCount++;
-      this.currentCard.repetitionLevel = 0;
-      // 復習用にキューの少し後ろ（3〜5問後）に再挿入
+
+      // 本日の誤答ストックへ保存
+      await Storage.recordTodayMistake(this.currentCard, this.currentPattern);
+
+      // 特訓モードまたは通常モードで再復習用にキューの少し後ろ（3〜4問後）に再挿入
       const insertIdx = Math.min(this.queue.length, this.currentIndex + 4);
       this.queue.splice(insertIdx, 0, this.currentCard);
     }
 
-    this.currentCard.reviewCount = (this.currentCard.reviewCount || 0) + 1;
-    this.currentCard.lastReviewedAt = new Date().toISOString();
-
+    // 3. カード情報の永続化
     await Storage.updateCard(this.currentCard);
 
+    // 4. 次のカードへ進む
     this.currentIndex++;
     this.updateStatsUI();
     this.showNextCard();
@@ -246,11 +499,8 @@ const StudyManager = {
 
     const card = this.currentCard;
     const pattern = this.currentPattern;
-
-    // パターン情報
     const patternInfo = this.getPatternInfo(pattern);
 
-    // 表裏に応じた表示コンテンツの組み立て
     let questionHtml = '';
     let answerHtml = '';
 
@@ -310,21 +560,52 @@ const StudyManager = {
       `;
     }
 
+    const modeBadge = this.isDrillMode
+      ? `<span class="drill-mode-badge">🎯 特訓中 (残り${this.drillRemainingIds.size}枚)</span>`
+      : '';
+
+    const canGoPrev = this.currentIndex > 0;
+    const canGoNext = this.currentIndex < this.queue.length - 1;
+
     container.innerHTML = `
-      <div class="study-card ${this.isFlipped ? 'is-flipped' : ''}" onclick="StudyManager.flipCard();">
-        <div class="card-top-info">
-          <div class="quest-badge ${patternInfo.badgeClass}">
-            ${patternInfo.badgeText}
+      <div class="study-card-wrapper" id="study-card-wrapper">
+        <div class="study-card ${this.isFlipped ? 'is-flipped' : ''}" onclick="StudyManager.flipCard();">
+          <div class="card-top-info">
+            <div class="quest-badge ${patternInfo.badgeClass}">
+              ${patternInfo.badgeText}
+            </div>
+            <div class="card-top-right">
+              ${modeBadge}
+              <div class="deck-tag">${escapeHtml(card.deck || card.category1 || 'デッキ')}</div>
+            </div>
           </div>
-          <div class="deck-tag">${escapeHtml(card.deck || card.category1 || 'デッキ')}</div>
+
+          <div class="card-body">
+            ${!this.isFlipped ? questionHtml : answerHtml}
+          </div>
+
+          <div class="card-flip-hint">
+            ${!this.isFlipped ? '👉 カードまたは画面下のボタンをタップして答えを表示' : '👈👉 左右スワイプで前後のカードへ移動'}
+          </div>
         </div>
 
-        <div class="card-body">
-          ${!this.isFlipped ? questionHtml : answerHtml}
-        </div>
+        <!-- パラパラめくりナビゲーションバー（解答履歴を汚さずに移動） -->
+        <div class="card-browse-nav">
+          <button class="btn-browse-nav prev ${!canGoPrev ? 'disabled' : ''}" 
+            onclick="StudyManager.goToPrevCardWithoutGrading(); event.stopPropagation();"
+            ${!canGoPrev ? 'disabled' : ''} title="前のカード (記録なし)">
+            ◀ 前へ
+          </button>
 
-        <div class="card-flip-hint">
-          ${!this.isFlipped ? '👉 カードまたは画面下のボタンをタップして答えを表示' : ''}
+          <span class="browse-counter">
+            ${this.currentIndex + 1} / ${this.queue.length}
+          </span>
+
+          <button class="btn-browse-nav next ${!canGoNext ? 'disabled' : ''}" 
+            onclick="StudyManager.goToNextCardWithoutGrading(); event.stopPropagation();"
+            ${!canGoNext ? 'disabled' : ''} title="次のカード (記録なし)">
+            次へ ▶
+          </button>
         </div>
       </div>
     `;
@@ -398,14 +679,18 @@ const StudyManager = {
     if (accuracyEl) accuracyEl.innerText = `${acc}% 正解`;
   },
 
-  renderEmptyState() {
+  renderEmptyState(message) {
     const container = document.getElementById('card-stage');
     if (!container) return;
+
+    const defaultMsg = '上部の「同期」ボタンを押して、Master Systemから最新カードを読み込んでください。';
+    const msg = message || defaultMsg;
+
     container.innerHTML = `
       <div class="empty-state-box">
         <div class="empty-icon">📭</div>
         <h3>カードがありません</h3>
-        <p>上部の「同期」ボタンを押して、Master Systemから最新カードを読み込んでください。</p>
+        <p>${msg}</p>
         <button class="btn-sync-action" onclick="SyncManager.pullDeck();">🔄 クラウドから同期</button>
       </div>
     `;
@@ -421,11 +706,14 @@ const StudyManager = {
     const correct = this.stats.correctCount;
     const acc = answered > 0 ? Math.round((correct / answered) * 100) : 100;
 
+    const titleText = this.isDrillMode ? '特訓クリア達成！' : 'QUEST COMPLETE!';
+    const subText = this.isDrillMode ? '本日の誤答カードをすべて克服しました！' : 'すべてのカードを完了しました！';
+
     container.innerHTML = `
       <div class="completed-box">
         <div class="completed-icon">🏆</div>
-        <h2>QUEST COMPLETE!</h2>
-        <p>すべてのカードを完了しました！</p>
+        <h2>${titleText}</h2>
+        <p>${subText}</p>
         <div class="completed-stats-grid">
           <div class="c-stat-box">
             <span class="c-stat-label">出題数</span>
@@ -440,11 +728,79 @@ const StudyManager = {
             <span class="c-stat-val text-gold">${acc}%</span>
           </div>
         </div>
-        <button class="btn-restart" onclick="StudyManager.buildQueue(); StudyManager.showNextCard();">🔁 もう一度学習する</button>
+        <button class="btn-restart" onclick="StudyManager.buildQueue().then(() => StudyManager.showNextCard());">🔁 もう一度学習する</button>
       </div>
     `;
     const actionContainer = document.getElementById('bottom-action-bar');
     if (actionContainer) actionContainer.innerHTML = '';
+  },
+
+  // =========================================================================
+  // スワイプジェスチャー処理 (タッチイベント)
+  // =========================================================================
+
+  initSwipeListeners() {
+    const stage = document.getElementById('card-stage');
+    if (!stage) return;
+
+    stage.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      this.touchState.startX = touch.clientX;
+      this.touchState.startY = touch.clientY;
+      this.touchState.currentX = touch.clientX;
+      this.touchState.startTime = Date.now();
+      this.touchState.isSwiping = false;
+    }, { passive: true });
+
+    stage.addEventListener('touchmove', (e) => {
+      if (!this.touchState.startX) return;
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - this.touchState.startX;
+      const deltaY = touch.clientY - this.touchState.startY;
+
+      // 水平方向のスワイプが垂直スクロールよりも優位な場合
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 15) {
+        this.touchState.isSwiping = true;
+        this.touchState.currentX = touch.clientX;
+
+        // カードを指に追従して少し傾け・スライド
+        const cardWrapper = document.getElementById('study-card-wrapper');
+        if (cardWrapper) {
+          const moveX = Math.min(80, Math.max(-80, deltaX * 0.4));
+          const rotateDeg = moveX * 0.05;
+          cardWrapper.style.transform = `translateX(${moveX}px) rotate(${rotateDeg}deg)`;
+          cardWrapper.style.transition = 'none';
+        }
+      }
+    }, { passive: true });
+
+    stage.addEventListener('touchend', (e) => {
+      const cardWrapper = document.getElementById('study-card-wrapper');
+      if (cardWrapper) {
+        cardWrapper.style.transform = '';
+        cardWrapper.style.transition = 'transform 0.2s ease';
+      }
+
+      if (!this.touchState.isSwiping) return;
+
+      const deltaX = this.touchState.currentX - this.touchState.startX;
+      const duration = Date.now() - this.touchState.startTime;
+
+      this.touchState.isSwiping = false;
+      this.touchState.startX = 0;
+      this.touchState.currentX = 0;
+
+      // スワイプ閾値: 50px以上かつ短時間でのフリック
+      if (Math.abs(deltaX) > 50 && duration < 600) {
+        if (deltaX < 0) {
+          // 左スワイプ ➔ 次のカード
+          this.goToNextCardWithoutGrading();
+        } else {
+          // 右スワイプ ➔ 前のカード
+          this.goToPrevCardWithoutGrading();
+        }
+      }
+    }, { passive: true });
   }
 };
 
@@ -456,4 +812,11 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+if (typeof window !== 'undefined') {
+  window.StudyManager = StudyManager;
+}
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = StudyManager;
 }

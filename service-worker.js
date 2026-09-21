@@ -2,7 +2,7 @@
  * service-worker.js - MEMORY HACK Mobile PWA オフラインキャッシュ
  */
 
-const CACHE_NAME = 'memory-hack-mobile-v1.0.0';
+const CACHE_NAME = 'memory-hack-mobile-v1.1.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -10,6 +10,8 @@ const ASSETS_TO_CACHE = [
   './css/mobile.css',
   './js/config.js',
   './js/storage.js',
+  './js/srs.js',
+  './js/hierarchy.js',
   './js/sync.js',
   './js/audio.js',
   './js/study.js',
