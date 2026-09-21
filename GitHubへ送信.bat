@@ -1,22 +1,21 @@
 @echo off
-chcp 65001 >nul
 cd /d "C:\Users\nonst\recover\obsidian folder\006_AI_Workspace\anki-mobile"
 echo =========================================================================
-echo    MEMORY HACK Mobile - GitHub への最新コード送信 (v1.1.1)
+echo    MEMORY HACK Mobile - GitHub Push (v1.1.1)
 echo =========================================================================
 echo.
-echo GitHub に最新コードを送信しています...
+echo [1/2] Sending latest code to GitHub repository...
 git push origin main
 echo.
 if %errorlevel% equ 0 (
     echo =========================================================================
-    echo  [成功] GitHubへのプッシュが完了しました！
-    echo  数分後にGitHub Pagesが自動更新されます。
-    echo  スマホのPWAアプリを再読み込み/再起動してご利用ください。
+    echo  [SUCCESS] Push to GitHub completed successfully!
+    echo  GitHub Pages will be updated in 1-2 minutes.
+    echo  Please restart or refresh your smartphone PWA app.
     echo =========================================================================
 ) else (
     echo =========================================================================
-    echo  [確認] ブラウザでGitHubの認証画面が開いた場合は、許可を押してください。
+    echo  [ERROR] Git push failed. Please see error details above.
     echo =========================================================================
 )
 echo.
