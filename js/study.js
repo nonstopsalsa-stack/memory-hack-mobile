@@ -364,6 +364,7 @@ const StudyManager = {
   flipCard() {
     if (this.isFlipped) return;
     this.isFlipped = true;
+    this.showAdvice = true;
     this.renderCard();
 
     if (this.autoPlayAudio && (this.currentPattern === 'ja_to_en' || this.currentPattern === 'ja_to_audio' || this.currentPattern === 'en_to_audio')) {
@@ -552,12 +553,12 @@ const StudyManager = {
         ` : ''}
 
         ${card.advice ? `
-          <div class="advice-accordion ${this.showAdvice ? 'expanded' : ''}" onclick="StudyManager.toggleAdvice(); event.stopPropagation();">
+          <div class="advice-accordion expanded">
             <div class="advice-header">
               <span class="advice-title">💡 攻略アドバイス・AI解説</span>
-              <span class="advice-arrow">${this.showAdvice ? '▲' : '▼'}</span>
+              <span class="advice-arrow">▲</span>
             </div>
-            ${this.showAdvice ? `<div class="advice-body">${escapeHtml(card.advice)}</div>` : ''}
+            <div class="advice-body">${escapeHtml(card.advice)}</div>
           </div>
         ` : ''}
       `;
