@@ -10,7 +10,7 @@
  */
 
 const StudyManager = {
-  version: '1.1.2-mobile',
+  version: '1.1.3-mobile',
   cards: [],
   queue: [],
   currentIndex: 0,

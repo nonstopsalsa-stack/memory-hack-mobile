@@ -6,7 +6,7 @@ const App = {
   deferredPrompt: null,
 
   async init() {
-    console.log('[App] MEMORY HACK Mobile v1.1.2 Initializing...');
+    console.log('[App] MEMORY HACK Mobile v1.1.3 Initializing...');
 
     // 1. 各マネージャーの初期化
     if (typeof AudioManager !== 'undefined') AudioManager.init();
@@ -14,7 +14,7 @@ const App = {
     if (typeof StudyManager !== 'undefined') await StudyManager.init();
 
     // 起動トースト表示
-    this.showToast('🚀 MEMORY HACK Mobile v1.1.2 準備完了', 'info');
+    this.showToast('🚀 MEMORY HACK Mobile v1.1.3 準備完了', 'info');
 
     // 2. イベントリスナー登録
     this.bindEvents();

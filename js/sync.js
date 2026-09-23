@@ -127,9 +127,16 @@ const SyncManager = {
         const remoteTime = new Date(data.updatedAt).getTime();
         const localTime = this.lastRemoteUpdatedAt ? new Date(this.lastRemoteUpdatedAt).getTime() : 0;
         const currentCards = await Storage.getAllCards();
+        const remoteCount = typeof data.count === 'number' ? data.count : (parseInt(data.count, 10) || 0);
+        const currentCount = currentCards.length;
 
-        if (remoteTime > localTime || currentCards.length <= 3) {
-          console.log('[Sync] Remote update detected. Pulling deck...');
+        // リモート更新日時の進捗、初期カード状態、またはカード枚数の不一致時に同期を発動
+        const isTimeAdvanced = remoteTime > localTime;
+        const isInitialState = currentCards.length <= 3;
+        const isCountMismatch = (remoteCount > 0 && remoteCount !== currentCount);
+
+        if (isTimeAdvanced || isInitialState || isCountMismatch) {
+          console.log(`[Sync] Remote update detected (remoteTime: ${remoteTime}, localTime: ${localTime}, remoteCount: ${remoteCount}, currentCount: ${currentCount}). Pulling deck...`);
           if (autoPull) {
             await this.pullDeck({ silent: true });
           } else {
