@@ -347,7 +347,7 @@ html, body {
 }
 
 .study-card {
-  flex: 1;
+  flex: none;
   min-height: 280px;
   background: var(--bg-card);
   border: 2px solid var(--border-color);
@@ -567,7 +567,7 @@ html, body {
   padding: 0.6rem;
   margin-top: 0.6rem;
   text-align: left;
-  cursor: pointer;
+  cursor: default;
 }
 
 .advice-header {
@@ -614,6 +614,7 @@ html, body {
   display: flex;
   gap: 0.75rem;
   z-index: 10;
+  flex-shrink: 0;
 }
 
 .btn-action {
