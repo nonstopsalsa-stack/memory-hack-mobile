@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    MEMORY HACK MOBILE - Dark Cyber & Blox Fruits Theme
    Optimized for Android / Mobile Touch Ergonomics
    ========================================================================== */
@@ -1254,4 +1254,193 @@ html, body {
   padding: 1px 6px;
   border-radius: 6px;
   white-space: nowrap;
+}
+
+
+/* ==========================================================================
+   螟ｧ莠ｺ蜷代￠繧ｷ繝ｳ繝励Ν・医Λ繧､繝茨ｼ峨ユ繝ｼ繝・   ========================================================================== */
+[data-theme="light"] {
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-flipped: #ffffff;
+  --bg-header: #ffffff;
+  --border-color: #e2e8f0;
+  --border-focus: #3b82f6;
+  
+  --color-gold: #d97706;
+  --color-gold-glow: transparent;
+  --color-cyan: #2563eb;
+  --color-cyan-glow: transparent;
+  --color-green: #10b981;
+  --color-red: #ef4444;
+  --color-text-main: #0f172a;
+  --color-text-sub: #475569;
+  --color-text-muted: #64748b;
+}
+
+[data-theme="light"] .brand-title {
+  background: none !important;
+  -webkit-text-fill-color: #0f172a !important;
+  color: #0f172a !important;
+}
+[data-theme="light"] .brand-logo {
+  filter: none !important;
+}
+[data-theme="light"] .brand-ver-badge {
+  background: rgba(37, 99, 235, 0.08) !important;
+  color: #2563eb !important;
+  border-color: rgba(37, 99, 235, 0.25) !important;
+}
+[data-theme="light"] .card-prompt-text.en {
+  color: #1e3a8a !important;
+  text-shadow: none !important;
+}
+[data-theme="light"] .flashcard-card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid #cbd5e1 !important;
+}
+[data-theme="light"] .control-strip {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+[data-theme="light"] .deck-chip-btn {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+[data-theme="light"] .mobile-select {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+[data-theme="light"] .type-filter-group {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+[data-theme="light"] .type-filter-btn {
+  color: #64748b !important;
+}
+[data-theme="light"] .type-filter-btn.active {
+  background: #ffffff !important;
+  color: #2563eb !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+[data-theme="light"] .pattern-chip-btn {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+[data-theme="light"] .btn-action.action-flip {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3) !important;
+}
+[data-theme="light"] .sync-btn {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+[data-theme="light"] .modal-sheet {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+[data-theme="light"] .modal-title {
+  color: #0f172a !important;
+}
+[data-theme="light"] .form-label {
+  color: #334155 !important;
+}
+[data-theme="light"] .form-input {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+[data-theme="light"] .btn-modal-action {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+[data-theme="light"] .btn-modal-action.primary {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+}
+
+/* ==========================================================================
+   螟ｧ莠ｺ蜷代￠繧ｷ繝ｳ繝励Ν・医ム繝ｼ繧ｯ・峨ユ繝ｼ繝・   ========================================================================== */
+[data-theme="dark"] {
+  --bg-main: #0b0f19;
+  --bg-card: #131b2e;
+  --bg-card-flipped: #1a233a;
+  --bg-header: #0f172a;
+  --border-color: #232f48;
+  --border-focus: #38bdf8;
+  
+  --color-gold: #f59e0b;
+  --color-gold-glow: transparent;
+  --color-cyan: #38bdf8;
+  --color-cyan-glow: transparent;
+  --color-green: #34d399;
+  --color-red: #f87171;
+  --color-text-main: #f8fafc;
+  --color-text-sub: #cbd5e1;
+  --color-text-muted: #94a3b8;
+}
+
+[data-theme="dark"] .brand-title {
+  background: none !important;
+  -webkit-text-fill-color: #f8fafc !important;
+  color: #f8fafc !important;
+}
+[data-theme="dark"] .brand-logo {
+  filter: none !important;
+}
+[data-theme="dark"] .brand-ver-badge {
+  background: rgba(56, 189, 248, 0.1) !important;
+  color: #38bdf8 !important;
+  border-color: rgba(56, 189, 248, 0.3) !important;
+}
+[data-theme="dark"] .card-prompt-text.en {
+  color: #60a5fa !important;
+  text-shadow: none !important;
+}
+[data-theme="dark"] .flashcard-card {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+  border: 1px solid #232f48 !important;
+}
+[data-theme="dark"] .control-strip {
+  background: #0f172a !important;
+  border-bottom: 1px solid #232f48 !important;
+}
+[data-theme="dark"] .deck-chip-btn {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+[data-theme="dark"] .mobile-select {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+[data-theme="dark"] .type-filter-group {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+[data-theme="dark"] .type-filter-btn {
+  color: #94a3b8 !important;
+}
+[data-theme="dark"] .type-filter-btn.active {
+  background: #334155 !important;
+  color: #38bdf8 !important;
+}
+[data-theme="dark"] .pattern-chip-btn {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+[data-theme="dark"] .btn-action.action-flip {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
 }

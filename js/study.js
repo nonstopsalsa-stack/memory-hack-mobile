@@ -1,4 +1,4 @@
-/**
+﻿/**
  * study.js - MEMORY HACK Mobile 学習マネージャー
  * 
  * 主要機能:
@@ -10,7 +10,7 @@
  */
 
 const StudyManager = {
-  version: '1.1.3-mobile',
+  version: '1.2.0-mobile',
   cards: [],
   queue: [],
   currentIndex: 0,

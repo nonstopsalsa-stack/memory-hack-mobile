@@ -1,4 +1,4 @@
-/**
+﻿/**
  * config.js - MEMORY HACK Mobile 設定ファイル
  */
 
@@ -10,5 +10,5 @@ window.APP_CONFIG = {
   // 音声の初期読み上げ速度 (0.9 = やや聞き取りやすい自然な速度)
   speechRate: 0.9,
   // アプリバージョン
-  version: "1.1.3-mobile"
+  version: "1.2.0-mobile"
 };
