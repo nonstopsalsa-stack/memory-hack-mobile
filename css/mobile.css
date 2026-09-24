@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    MEMORY HACK MOBILE - Dark Cyber & Blox Fruits Theme
    Optimized for Android / Mobile Touch Ergonomics
    ========================================================================== */
@@ -1443,4 +1443,133 @@ html, body {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
   color: #ffffff !important;
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+}
+
+/* ==========================================================================
+   MUICHIRO THEME (霞の呼吸 / 時透無一郎)
+   ========================================================================== */
+[data-theme="muichiro"] {
+  --bg-main: #070d12;
+  --bg-card: rgba(13, 26, 36, 0.9);
+  --bg-card-flipped: rgba(15, 30, 42, 0.95);
+  --bg-header: #070d12;
+  --border-color: rgba(45, 212, 191, 0.28);
+  --border-focus: #2dd4bf;
+
+  --color-gold: #2dd4bf;
+  --color-gold-glow: rgba(45, 212, 191, 0.35);
+  --color-cyan: #5eead4;
+  --color-cyan-glow: rgba(94, 234, 212, 0.35);
+  --color-green: #14b8a6;
+  --color-red: #f43f5e;
+  --color-text-main: #f0fdfa;
+  --color-text-sub: #a5f3fc;
+  --color-text-muted: #94a3b8;
+}
+
+[data-theme="muichiro"] .top-bar {
+  background: #070d12 !important;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.25) !important;
+}
+
+[data-theme="muichiro"] .brand-title {
+  background: none !important;
+  -webkit-text-fill-color: #2dd4bf !important;
+  color: #2dd4bf !important;
+  text-shadow: 0 0 10px rgba(45, 212, 191, 0.4) !important;
+}
+
+[data-theme="muichiro"] .brand-ver-badge {
+  background: rgba(45, 212, 191, 0.15) !important;
+  color: #2dd4bf !important;
+  border-color: rgba(45, 212, 191, 0.3) !important;
+}
+
+[data-theme="muichiro"] .card-prompt-text.en {
+  color: #f0fdfa !important;
+  text-shadow: 0 0 10px rgba(45, 212, 191, 0.3) !important;
+}
+
+[data-theme="muichiro"] .flashcard-card {
+  background: linear-gradient(145deg, rgba(13, 26, 36, 0.92) 0%, rgba(7, 13, 18, 0.96) 100%) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(45, 212, 191, 0.15) !important;
+  border: 1.5px solid rgba(45, 212, 191, 0.3) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+[data-theme="muichiro"] .control-strip {
+  background: #070d12 !important;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.2) !important;
+}
+
+[data-theme="muichiro"] .deck-chip-btn,
+[data-theme="muichiro"] .mobile-select,
+[data-theme="muichiro"] .pattern-chip-btn {
+  background: rgba(13, 26, 36, 0.8) !important;
+  color: #f0fdfa !important;
+  border-color: rgba(45, 212, 191, 0.25) !important;
+}
+
+[data-theme="muichiro"] .type-filter-group {
+  background: rgba(13, 26, 36, 0.8) !important;
+  border-color: rgba(45, 212, 191, 0.25) !important;
+}
+
+[data-theme="muichiro"] .type-filter-btn {
+  color: #94a3b8 !important;
+}
+
+[data-theme="muichiro"] .type-filter-btn.active {
+  background: rgba(45, 212, 191, 0.25) !important;
+  color: #5eead4 !important;
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.3) !important;
+}
+
+[data-theme="muichiro"] .btn-action.action-flip {
+  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(13, 148, 136, 0.4) !important;
+}
+
+[data-theme="muichiro"] .btn-action.action-good {
+  background: linear-gradient(135deg, #0d9488 0%, #2dd4bf 100%) !important;
+}
+
+[data-theme="muichiro"] .sync-btn {
+  background: rgba(13, 26, 36, 0.8) !important;
+  color: #5eead4 !important;
+  border-color: rgba(45, 212, 191, 0.3) !important;
+}
+
+[data-theme="muichiro"] .modal-sheet {
+  background: #0d1a24 !important;
+  color: #f0fdfa !important;
+  border-color: rgba(45, 212, 191, 0.35) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), 0 0 20px rgba(45, 212, 191, 0.2) !important;
+}
+
+[data-theme="muichiro"] .modal-title {
+  color: #2dd4bf !important;
+}
+
+[data-theme="muichiro"] .form-label {
+  color: #a5f3fc !important;
+}
+
+[data-theme="muichiro"] .form-input {
+  background: #070d12 !important;
+  color: #f0fdfa !important;
+  border-color: rgba(45, 212, 191, 0.3) !important;
+}
+
+[data-theme="muichiro"] .btn-modal-action {
+  background: rgba(13, 26, 36, 0.8) !important;
+  color: #f0fdfa !important;
+  border-color: rgba(45, 212, 191, 0.25) !important;
+}
+
+[data-theme="muichiro"] .btn-modal-action.primary {
+  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%) !important;
+  color: #ffffff !important;
+  border-color: #2dd4bf !important;
 }
