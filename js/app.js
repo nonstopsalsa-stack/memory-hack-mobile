@@ -6,19 +6,27 @@ const App = {
   deferredPrompt: null,
 
   async init() {
-    console.log('[App] MEMORY HACK Mobile v1.2.2 Initializing...');
+    console.log('[App] MEMORY HACK Mobile v1.2.3 Initializing...');
 
     // 0. テーマ初期化
-    const savedTheme = localStorage.getItem('anki_mobile_theme') || 'bloxfruits';
-    this.applyTheme(savedTheme, false);
+    try {
+      const savedTheme = localStorage.getItem('anki_mobile_theme') || 'bloxfruits';
+      this.applyTheme(savedTheme, false);
+    } catch (e) {
+      console.warn('[App] Theme init error:', e);
+    }
 
     // 1. 各マネージャーの初期化
-    if (typeof AudioManager !== 'undefined') AudioManager.init();
-    if (typeof SyncManager !== 'undefined') await SyncManager.init();
-    if (typeof StudyManager !== 'undefined') await StudyManager.init();
+    try {
+      if (typeof AudioManager !== 'undefined') AudioManager.init();
+      if (typeof SyncManager !== 'undefined') await SyncManager.init();
+      if (typeof StudyManager !== 'undefined') await StudyManager.init();
+    } catch (e) {
+      console.error('[App] Manager init error:', e);
+    }
 
     // 起動トースト表示
-    this.showToast('🚀 MEMORY HACK Mobile v1.2.2 準備完了', 'info');
+    this.showToast('🚀 MEMORY HACK Mobile v1.2.3 準備完了', 'info');
 
     // 2. イベントリスナー登録
     this.bindEvents();
@@ -136,6 +144,30 @@ const App = {
     StudyManager.activePatterns = checked;
     Storage.saveSetting('study_active_patterns', checked);
     StudyManager.renderPatternSelector();
+  },
+
+  // テーマ適用 (bloxfruits / light / dark)
+  applyTheme(theme, save = true) {
+    if (!theme) theme = 'bloxfruits';
+    document.documentElement.setAttribute('data-theme', theme);
+    if (save) {
+      localStorage.setItem('anki_mobile_theme', theme);
+    }
+    const themeSelect = document.getElementById('setting-mobile-theme');
+    if (themeSelect && themeSelect.value !== theme) {
+      themeSelect.value = theme;
+    }
+    // PWA テーマカラーの動的変更
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) {
+      if (theme === 'light') {
+        metaTheme.setAttribute('content', '#ffffff');
+      } else if (theme === 'dark') {
+        metaTheme.setAttribute('content', '#0f172a');
+      } else {
+        metaTheme.setAttribute('content', '#0a0e17');
+      }
+    }
   },
 
   // 設定の保存
