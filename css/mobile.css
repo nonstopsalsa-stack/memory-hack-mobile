@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    MEMORY HACK MOBILE - Dark Cyber & Blox Fruits Theme
    Optimized for Android / Mobile Touch Ergonomics
    ========================================================================== */
@@ -1775,10 +1775,33 @@ html, body {
   color: #1e293b !important;
 }
 
-[data-theme="light"] .form-input {
+[data-theme="light"] .form-input,
+[data-theme="light"] .mobile-select,
+[data-theme="light"] select.mobile-select {
   background: #ffffff !important;
   color: #0b132b !important;
   border: 1.5px solid #cbd5e1 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="light"] .form-input:focus,
+[data-theme="light"] .mobile-select:focus,
+[data-theme="light"] select.mobile-select:focus {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18) !important;
+}
+
+/* プルダウン展開時の option 要素（OS/ブラウザネイティブのダーク背景化を抑止） */
+[data-theme="light"] .mobile-select option,
+[data-theme="light"] select.mobile-select option,
+[data-theme="light"] .mode-select option {
+  background-color: #ffffff !important;
+  color: #0b132b !important;
+}
+
+/* チェックボックス項目 */
+[data-theme="light"] .form-checkbox-label {
+  color: #1e293b !important;
 }
 
 [data-theme="light"] .btn-modal-action {
