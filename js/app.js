@@ -6,7 +6,7 @@ const App = {
   deferredPrompt: null,
 
   async init() {
-    console.log('[App] MEMORY HACK Mobile v1.3.5 Initializing...');
+    console.log('[App] MEMORY HACK Mobile v1.3.6 Initializing...');
 
     // 0. テーマ初期化 (デフォルトは正式な「ライト」)
     try {
@@ -27,7 +27,7 @@ const App = {
     }
 
     // 起動トースト表示
-    this.showToast('🚀 MEMORY HACK Mobile v1.3.5 準備完了', 'info');
+    this.showToast('🚀 MEMORY HACK Mobile v1.3.6 準備完了', 'info');
 
     // 2. イベントリスナー登録
     this.bindEvents();

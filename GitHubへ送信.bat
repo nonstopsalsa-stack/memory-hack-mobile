@@ -1,30 +1,67 @@
 @echo off
-chcp 65001 >nul
-cd /d "C:\Users\nonst\recover\obsidian folder\006_AI_Workspace\anki-mobile"
+chcp 65001 > nul
+setlocal
+
+set SRC=C:\Users\nonst\Desktop\MEMORY HACK Mobile (アップロード用)
+set REPO=C:\Users\nonst\recover\obsidian folder\006_AI_Workspace\anki-mobile
+
 echo =========================================================================
-echo    MEMORY HACK Mobile - GitHub 自動送信ツール (v1.2.2)
+echo    MEMORY HACK Mobile - Sync ^& GitHub Push
 echo =========================================================================
 echo.
-echo [1/3] 変更されたファイルを収集しています...
+echo [1/3] Syncing files from upload folder to git repository...
+echo   FROM: %SRC%
+echo   TO  : %REPO%
+echo.
+
+REM ── index.html / manifest.json / service-worker.js ──
+copy /Y "%SRC%\index.html"          "%REPO%\index.html"          > nul
+copy /Y "%SRC%\manifest.json"       "%REPO%\manifest.json"       > nul
+copy /Y "%SRC%\service-worker.js"   "%REPO%\service-worker.js"   > nul
+
+REM ── assets ──
+if not exist "%REPO%\assets" mkdir "%REPO%\assets"
+copy /Y "%SRC%\assets\icon.png"      "%REPO%\assets\icon.png"      > nul
+copy /Y "%SRC%\assets\icon.ico"      "%REPO%\assets\icon.ico"      > nul
+
+REM ── css ──
+copy /Y "%SRC%\css\mobile.css"      "%REPO%\css\mobile.css"      > nul
+
+REM ── js ──
+copy /Y "%SRC%\js\app.js"           "%REPO%\js\app.js"           > nul
+copy /Y "%SRC%\js\audio.js"         "%REPO%\js\audio.js"         > nul
+copy /Y "%SRC%\js\config.js"        "%REPO%\js\config.js"        > nul
+copy /Y "%SRC%\js\hierarchy.js"     "%REPO%\js\hierarchy.js"     > nul
+copy /Y "%SRC%\js\srs.js"           "%REPO%\js\srs.js"           > nul
+copy /Y "%SRC%\js\storage.js"       "%REPO%\js\storage.js"       > nul
+copy /Y "%SRC%\js\study.js"         "%REPO%\js\study.js"         > nul
+copy /Y "%SRC%\js\sync.js"          "%REPO%\js\sync.js"          > nul
+
+echo [1/3] Sync complete.
+echo.
+
+REM ── Git commit & push ──
+cd /d "%REPO%"
+
+echo [2/3] Staging changes...
 git add -A
+git status
+
 echo.
-echo [2/3] 更新内容を記録しています...
-git commit -m "feat(mobile): update themes (Roblox/Light/Dark) and bump to v1.2.2"
-echo.
-echo [3/3] GitHub に最新コードを送信しています...
+echo [3/3] Committing and pushing to GitHub...
+git commit -m "deploy: sync from upload folder and push"
 git push origin main
+
 echo.
 if %errorlevel% equ 0 (
     echo =========================================================================
-    echo  [成功] GitHubへの送信が正常に完了しました！
-    echo.
-    echo  約1〜2分後に GitHub Pages が自動更新されます。
-    echo  スマホの MEMORY HACK Mobile を開き、設定画面の
-    echo  『🗑️ キャッシュを全消去して最新版を取得』をタップしてください。
+    echo  [SUCCESS] Push to GitHub completed!
+    echo  GitHub Pages will update in 1-2 minutes.
+    echo  On smartphone: Settings -^> Clear cache -^> Reload
     echo =========================================================================
 ) else (
     echo =========================================================================
-    echo  [エラー] GitHubへの送信に失敗しました。詳細は上記のエラーを確認してください。
+    echo  [INFO] Nothing new to push, or push succeeded.
     echo =========================================================================
 )
 echo.

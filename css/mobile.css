@@ -74,8 +74,23 @@ html, body {
 }
 
 .brand-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.25rem;
   filter: drop-shadow(0 0 4px var(--color-cyan));
+  vertical-align: middle;
+}
+
+.brand-logo .logo-sword {
+  display: inline-block;
+  line-height: 1;
+}
+
+.brand-logo .logo-intellect {
+  display: none;
+  width: 22px;
+  height: 22px;
 }
 
 .brand-title {
@@ -1287,7 +1302,17 @@ html, body {
   color: #f8fafc !important;
 }
 [data-theme="dark"] .brand-logo {
-  filter: none !important;
+  filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.45)) !important;
+}
+[data-theme="dark"] .brand-logo .logo-sword {
+  display: none !important;
+}
+[data-theme="dark"] .brand-logo .logo-intellect {
+  display: inline-flex !important;
+  color: #38bdf8 !important;
+}
+[data-theme="dark"] .brand-logo .logo-intellect .logo-svg-frame {
+  fill: rgba(56, 189, 248, 0.12) !important;
 }
 [data-theme="dark"] .brand-ver-badge {
   background: rgba(56, 189, 248, 0.1) !important;
@@ -1531,7 +1556,17 @@ html, body {
 }
 
 [data-theme="light"] .brand-logo {
-  filter: none !important;
+  filter: drop-shadow(0 1px 2px rgba(67, 56, 202, 0.15)) !important;
+}
+[data-theme="light"] .brand-logo .logo-sword {
+  display: none !important;
+}
+[data-theme="light"] .brand-logo .logo-intellect {
+  display: inline-flex !important;
+  color: #4338ca !important;
+}
+[data-theme="light"] .brand-logo .logo-intellect .logo-svg-frame {
+  fill: rgba(99, 102, 241, 0.08) !important;
 }
 
 [data-theme="light"] .brand-ver-badge {
@@ -1839,4 +1874,19 @@ html, body {
   background: rgba(30, 41, 59, 0.5) !important;
   color: rgba(255, 255, 255, 0.35) !important;
   opacity: 0.5 !important;
-}
+}
+
+/* ========================================================================
+   ブランドロゴ表示制御（Roblox・鬼滅テーマはクロスの剣を維持）
+   ======================================================================== */
+[data-theme="bloxfruits"] .brand-logo .logo-sword,
+[data-theme="muichiro"] .brand-logo .logo-sword,
+:root:not([data-theme="light"]):not([data-theme="dark"]) .brand-logo .logo-sword {
+  display: inline-block !important;
+}
+[data-theme="bloxfruits"] .brand-logo .logo-intellect,
+[data-theme="muichiro"] .brand-logo .logo-intellect,
+:root:not([data-theme="light"]):not([data-theme="dark"]) .brand-logo .logo-intellect {
+  display: none !important;
+}
+
