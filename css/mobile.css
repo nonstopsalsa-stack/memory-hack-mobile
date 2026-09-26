@@ -1573,3 +1573,154 @@ html, body {
   color: #ffffff !important;
   border-color: #2dd4bf !important;
 }
+
+/* ==========================================================================
+   大人向け「ハイセンス」テーマ（シンプル・洗練・都会的冷涼感）
+   厳選5系統カラー:
+   1. 白〜薄グレー: 背景 (#f8fafc / #ffffff)
+   2. 薄い青紫: カード・選択枠 (#eef2ff / #c7d2fe)
+   3. 濃紺: 文字・アイコン (#0f172a / #334155)
+   4. 明るい青紫: 主操作ボタン (#6366f1 / #4f46e5)
+   5. 赤〜ピンク: 通知・特殊状態 (#f43f5e)
+   ========================================================================== */
+[data-theme="highsense"] {
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-flipped: #fafbff;
+  --bg-header: #ffffff;
+  --border-color: #e2e8f0;
+  --border-focus: #6366f1;
+
+  --color-gold: #6366f1;
+  --color-gold-glow: rgba(99, 102, 241, 0.25);
+  --color-cyan: #4f46e5;
+  --color-cyan-glow: rgba(79, 70, 229, 0.25);
+  --color-green: #10b981;
+  --color-red: #f43f5e;
+  --color-text-main: #0f172a;
+  --color-text-sub: #334155;
+  --color-text-muted: #64748b;
+}
+
+[data-theme="highsense"] .top-bar {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="highsense"] .brand-title {
+  background: none !important;
+  -webkit-text-fill-color: #0f172a !important;
+  color: #0f172a !important;
+}
+
+[data-theme="highsense"] .brand-logo {
+  filter: none !important;
+}
+
+[data-theme="highsense"] .brand-ver-badge {
+  background: #eef2ff !important;
+  color: #4f46e5 !important;
+  border-color: #c7d2fe !important;
+}
+
+[data-theme="highsense"] .card-prompt-text.en {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+[data-theme="highsense"] .flashcard-card {
+  background: #ffffff !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.02) !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="highsense"] .control-strip {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="highsense"] .deck-chip-btn,
+[data-theme="highsense"] .mobile-select,
+[data-theme="highsense"] .pattern-chip-btn {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="highsense"] .mobile-select,
+[data-theme="highsense"] .pattern-chip-btn {
+  color: #4f46e5 !important;
+  border-color: #c7d2fe !important;
+}
+
+[data-theme="highsense"] .type-filter-group {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="highsense"] .type-filter-btn {
+  color: #64748b !important;
+}
+
+[data-theme="highsense"] .type-filter-btn.active {
+  background: #ffffff !important;
+  color: #4f46e5 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+}
+
+[data-theme="highsense"] .btn-action.action-flip {
+  background: #6366f1 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
+}
+
+[data-theme="highsense"] .btn-action.action-flip:active {
+  background: #4f46e5 !important;
+}
+
+[data-theme="highsense"] .btn-action.action-good {
+  background: #6366f1 !important;
+}
+
+[data-theme="highsense"] .sync-btn {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="highsense"] .modal-sheet {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 -8px 30px rgba(15, 23, 42, 0.12) !important;
+}
+
+[data-theme="highsense"] .modal-title {
+  color: #0f172a !important;
+}
+
+[data-theme="highsense"] .form-label {
+  color: #334155 !important;
+}
+
+[data-theme="highsense"] .form-input {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+[data-theme="highsense"] .btn-modal-action {
+  background: #ffffff !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+[data-theme="highsense"] .btn-modal-action.primary {
+  background: #6366f1 !important;
+  color: #ffffff !important;
+  border-color: #4f46e5 !important;
+}
