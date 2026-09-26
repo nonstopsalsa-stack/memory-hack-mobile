@@ -1803,18 +1803,33 @@ html, body {
   border-top: 1px solid #e2e8f0 !important;
 }
 
-/* 「答えを表示」主操作ボタン（明るめのピンク・華やかなアクセント） */
+/* 「答えを表示」主操作ボタン（元の洗練された青紫LED光彩） */
 [data-theme="highsense"] .btn-action.btn-flip {
-  background: linear-gradient(135deg, #ff5b99 0%, #ff2a70 100%) !important;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
   color: #ffffff !important;
   border: none !important;
-  box-shadow: 0 4px 18px rgba(255, 42, 112, 0.45) !important;
+  box-shadow: 0 4px 18px rgba(99, 102, 241, 0.45) !important;
   text-shadow: none !important;
 }
 
 [data-theme="highsense"] .btn-action.btn-flip:active {
-  background: #e6005c !important;
+  background: #4338ca !important;
   transform: scale(0.97) !important;
+}
+
+/* 「👀」のアイコン周りだけ明るいピンクアクセント（ジュエル風サークル） */
+[data-theme="highsense"] .btn-action.btn-flip .action-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: linear-gradient(135deg, #ff5b99 0%, #ff2a70 100%) !important;
+  box-shadow: 0 0 10px rgba(255, 42, 112, 0.6) !important;
+  border-radius: 50% !important;
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 1rem !important;
+  margin-right: 8px !important;
+  vertical-align: middle !important;
 }
 
 /* 不正解ボタン（赤〜ピンクの特殊警告状態） */
