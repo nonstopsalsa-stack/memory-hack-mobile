@@ -2,12 +2,11 @@
  * service-worker.js - MEMORY HACK Mobile PWA オフラインキャッシュ
  */
 
-const CACHE_NAME = 'memory-hack-mobile-v1.3.6.1';
+const CACHE_NAME = 'memory-hack-mobile-v1.3.6.2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
-  './manifest.json?v=1.3.6',
   './css/mobile.css?v=1.3.6',
   './js/config.js?v=1.3.6',
   './js/storage.js?v=1.3.6',
@@ -17,10 +16,10 @@ const ASSETS_TO_CACHE = [
   './js/sync.js?v=1.3.6',
   './js/study.js?v=1.3.6',
   './js/app.js?v=1.3.6',
-  './assets/icon-192.png?v=1.3.6',
-  './assets/icon-512.png?v=1.3.6',
-  './assets/icon.png?v=1.3.6',
-  './assets/icon.ico?v=1.3.6'
+  './assets/icon-192.png',
+  './assets/icon-512.png',
+  './assets/icon.png',
+  './assets/icon.ico'
 ];
 
 self.addEventListener('install', (event) => {
