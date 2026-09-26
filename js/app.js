@@ -6,12 +6,13 @@ const App = {
   deferredPrompt: null,
 
   async init() {
-    console.log('[App] MEMORY HACK Mobile v1.3.3 Initializing...');
+    console.log('[App] MEMORY HACK Mobile v1.3.4 Initializing...');
 
-    // 0. テーマ初期化
+    // 0. テーマ初期化 (デフォルトは正式な「ライト」)
     try {
-      const savedTheme = localStorage.getItem('anki_mobile_theme') || 'bloxfruits';
-      this.applyTheme(savedTheme, false);
+      const savedTheme = localStorage.getItem('anki_mobile_theme');
+      const initialTheme = (savedTheme === 'highsense' || !savedTheme) ? 'light' : savedTheme;
+      this.applyTheme(initialTheme, false);
     } catch (e) {
       console.warn('[App] Theme init error:', e);
     }
@@ -26,7 +27,7 @@ const App = {
     }
 
     // 起動トースト表示
-    this.showToast('🚀 MEMORY HACK Mobile v1.3.3 準備完了', 'info');
+    this.showToast('🚀 MEMORY HACK Mobile v1.3.4 準備完了', 'info');
 
     // 2. イベントリスナー登録
     this.bindEvents();
@@ -147,8 +148,9 @@ const App = {
   },
 
   // テーマ適用 (bloxfruits / light / dark)
+  // テーマ適用 (light / dark / bloxfruits / muichiro)
   applyTheme(theme, save = true) {
-    if (!theme) theme = 'bloxfruits';
+    if (!theme || theme === 'highsense') theme = 'light';
     document.documentElement.setAttribute('data-theme', theme);
     if (save) {
       localStorage.setItem('anki_mobile_theme', theme);
@@ -161,13 +163,11 @@ const App = {
     const metaTheme = document.querySelector('meta[name="theme-color"]');
     if (metaTheme) {
       if (theme === 'light') {
-        metaTheme.setAttribute('content', '#ffffff');
+        metaTheme.setAttribute('content', '#f8fafc');
       } else if (theme === 'dark') {
         metaTheme.setAttribute('content', '#0f172a');
       } else if (theme === 'muichiro') {
         metaTheme.setAttribute('content', '#070d12');
-      } else if (theme === 'highsense') {
-        metaTheme.setAttribute('content', '#f8fafc');
       } else {
         metaTheme.setAttribute('content', '#0a0e17');
       }
@@ -209,7 +209,8 @@ const App = {
     }
     const themeSelect = document.getElementById('setting-mobile-theme');
     if (themeSelect) {
-      themeSelect.value = localStorage.getItem('anki_mobile_theme') || 'bloxfruits';
+      const currentTheme = localStorage.getItem('anki_mobile_theme');
+      themeSelect.value = (currentTheme === 'highsense' || !currentTheme) ? 'light' : currentTheme;
     }
     this.openModal('modal-settings');
   },

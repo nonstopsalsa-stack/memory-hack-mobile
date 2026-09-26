@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    MEMORY HACK MOBILE - Dark Cyber & Blox Fruits Theme
    Optimized for Android / Mobile Touch Ergonomics
    ========================================================================== */
@@ -1258,115 +1258,7 @@ html, body {
 }
 
 
-/* ==========================================================================
-   螟ｧ莠ｺ蜷代￠繧ｷ繝ｳ繝励Ν・医Λ繧､繝茨ｼ峨ユ繝ｼ繝・   ========================================================================== */
-[data-theme="light"] {
-  --bg-main: #f8fafc;
-  --bg-card: #ffffff;
-  --bg-card-flipped: #ffffff;
-  --bg-header: #ffffff;
-  --border-color: #e2e8f0;
-  --border-focus: #3b82f6;
-  
-  --color-gold: #d97706;
-  --color-gold-glow: transparent;
-  --color-cyan: #2563eb;
-  --color-cyan-glow: transparent;
-  --color-green: #10b981;
-  --color-red: #ef4444;
-  --color-text-main: #0f172a;
-  --color-text-sub: #475569;
-  --color-text-muted: #64748b;
-}
 
-[data-theme="light"] .brand-title {
-  background: none !important;
-  -webkit-text-fill-color: #0f172a !important;
-  color: #0f172a !important;
-}
-[data-theme="light"] .brand-logo {
-  filter: none !important;
-}
-[data-theme="light"] .brand-ver-badge {
-  background: rgba(37, 99, 235, 0.08) !important;
-  color: #2563eb !important;
-  border-color: rgba(37, 99, 235, 0.25) !important;
-}
-[data-theme="light"] .card-prompt-text.en {
-  color: #1e3a8a !important;
-  text-shadow: none !important;
-}
-[data-theme="light"] .flashcard-card {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04) !important;
-  border: 1px solid #cbd5e1 !important;
-}
-[data-theme="light"] .control-strip {
-  background: #ffffff !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-}
-[data-theme="light"] .deck-chip-btn {
-  background: #f1f5f9 !important;
-  color: #334155 !important;
-  border-color: #cbd5e1 !important;
-}
-[data-theme="light"] .mobile-select {
-  background: #f1f5f9 !important;
-  color: #334155 !important;
-  border-color: #cbd5e1 !important;
-}
-[data-theme="light"] .type-filter-group {
-  background: #f1f5f9 !important;
-  border-color: #e2e8f0 !important;
-}
-[data-theme="light"] .type-filter-btn {
-  color: #64748b !important;
-}
-[data-theme="light"] .type-filter-btn.active {
-  background: #ffffff !important;
-  color: #2563eb !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-}
-[data-theme="light"] .pattern-chip-btn {
-  background: #f1f5f9 !important;
-  color: #334155 !important;
-  border-color: #cbd5e1 !important;
-}
-[data-theme="light"] .btn-action.action-flip {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3) !important;
-}
-[data-theme="light"] .sync-btn {
-  background: #f1f5f9 !important;
-  color: #334155 !important;
-  border-color: #cbd5e1 !important;
-}
-[data-theme="light"] .modal-sheet {
-  background: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
-}
-[data-theme="light"] .modal-title {
-  color: #0f172a !important;
-}
-[data-theme="light"] .form-label {
-  color: #334155 !important;
-}
-[data-theme="light"] .form-input {
-  background: #f8fafc !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
-}
-[data-theme="light"] .btn-modal-action {
-  background: #f1f5f9 !important;
-  color: #334155 !important;
-  border-color: #cbd5e1 !important;
-}
-[data-theme="light"] .btn-modal-action.primary {
-  background: #2563eb !important;
-  color: #ffffff !important;
-  border-color: #2563eb !important;
-}
 
 /* ==========================================================================
    螟ｧ莠ｺ蜷代￠繧ｷ繝ｳ繝励Ν・医ム繝ｼ繧ｯ・峨ユ繝ｼ繝・   ========================================================================== */
@@ -1576,14 +1468,14 @@ html, body {
 }
 
 /* ==========================================================================
-   大人向け「ハイセンス」テーマ（シンプル・洗練・都会的冷涼感）
+   大人向け正式「ライト」テーマ（シンプル・洗練・都会的冷涼感）
    ライトテーマとの明確な違い:
    - カードが「薄い青紫グラデーション」で背景から美しく浮き立つ
    - 文字は引き締まった「濃紺」で極めて高い視認性・コントラスト
    - 主操作ボタンは「明るい青紫（LED光彩）」で瞬時に押せる場所を認識
    - 暖色ノイズを排除し「白〜薄グレー / 薄青紫 / 濃紺 / 明るい青紫 / 赤通知」の5系統を厳格維持
    ========================================================================== */
-[data-theme="highsense"] {
+[data-theme="light"] {
   --bg-main: #f1f5f9;
   --bg-card: #eef2ff;
   --bg-card-flipped: #e0e7ff;
@@ -1602,14 +1494,14 @@ html, body {
   --color-text-muted: #64748b;
 }
 
-[data-theme="highsense"] html,
-[data-theme="highsense"] body {
+[data-theme="light"] html,
+[data-theme="light"] body {
   background-color: #f1f5f9 !important;
   color: #0b132b !important;
 }
 
 /* クリーンな冷涼アンビエント（金属・ガラス感） */
-[data-theme="highsense"] body::before {
+[data-theme="light"] body::before {
   content: '';
   position: fixed;
   top: 0;
@@ -1624,25 +1516,25 @@ html, body {
 }
 
 /* トップバー */
-[data-theme="highsense"] .top-bar {
+[data-theme="light"] .top-bar {
   background: rgba(255, 255, 255, 0.96) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
   border-bottom: 1px solid #e2e8f0 !important;
 }
 
-[data-theme="highsense"] .brand-title {
+[data-theme="light"] .brand-title {
   background: none !important;
   -webkit-text-fill-color: #0b132b !important;
   color: #0b132b !important;
   font-weight: 900 !important;
 }
 
-[data-theme="highsense"] .brand-logo {
+[data-theme="light"] .brand-logo {
   filter: none !important;
 }
 
-[data-theme="highsense"] .brand-ver-badge {
+[data-theme="light"] .brand-ver-badge {
   background: #e0e7ff !important;
   color: #4338ca !important;
   border: 1px solid #c7d2fe !important;
@@ -1650,37 +1542,37 @@ html, body {
 }
 
 /* コントロール帯 */
-[data-theme="highsense"] .control-strip {
+[data-theme="light"] .control-strip {
   background: rgba(248, 250, 252, 0.94) !important;
   border-bottom: 1px solid #e2e8f0 !important;
 }
 
-[data-theme="highsense"] .deck-chip-btn,
-[data-theme="highsense"] .mode-select,
-[data-theme="highsense"] .pattern-chip-btn {
+[data-theme="light"] .deck-chip-btn,
+[data-theme="light"] .mode-select,
+[data-theme="light"] .pattern-chip-btn {
   background: #ffffff !important;
   color: #0b132b !important;
   border: 1.5px solid #c7d2fe !important;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
 }
 
-[data-theme="highsense"] .mode-select,
-[data-theme="highsense"] .pattern-chip-btn {
+[data-theme="light"] .mode-select,
+[data-theme="light"] .pattern-chip-btn {
   color: #4338ca !important;
   border-color: #a5b4fc !important;
 }
 
-[data-theme="highsense"] .type-filter-group {
+[data-theme="light"] .type-filter-group {
   background: #e2e8f0 !important;
   border: 1px solid #cbd5e1 !important;
 }
 
-[data-theme="highsense"] .type-filter-btn {
+[data-theme="light"] .type-filter-btn {
   color: #475569 !important;
   font-weight: 600 !important;
 }
 
-[data-theme="highsense"] .type-filter-btn.active {
+[data-theme="light"] .type-filter-btn.active {
   background: #4f46e5 !important;
   color: #ffffff !important;
   box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3) !important;
@@ -1689,106 +1581,106 @@ html, body {
 /* ========================================================
    暗記カード本体（薄い青紫の面感 × 濃紺文字の絶対コントラスト）
    ======================================================== */
-[data-theme="highsense"] .study-card {
+[data-theme="light"] .study-card {
   background: linear-gradient(165deg, #eef2ff 0%, #e0e7ff 100%) !important;
   border: 1.5px solid #c7d2fe !important;
   box-shadow: 0 10px 28px rgba(99, 102, 241, 0.12), 0 2px 8px rgba(15, 23, 42, 0.04) !important;
   border-radius: 18px !important;
 }
 
-[data-theme="highsense"] .study-card.is-flipped {
+[data-theme="light"] .study-card.is-flipped {
   background: linear-gradient(165deg, #e0e7ff 0%, #dbeafe 100%) !important;
   border-color: #a5b4fc !important;
 }
 
 /* 質問文・見出し（濃紺・強コントラスト） */
-[data-theme="highsense"] .card-prompt-text {
+[data-theme="light"] .card-prompt-text {
   color: #0b132b !important;
   font-weight: 900 !important;
   text-shadow: none !important;
 }
 
-[data-theme="highsense"] .card-prompt-text.en {
+[data-theme="light"] .card-prompt-text.en {
   color: #0b132b !important;
   text-shadow: none !important;
 }
 
-[data-theme="highsense"] .card-prompt-text.ja {
+[data-theme="light"] .card-prompt-text.ja {
   color: #0b132b !important;
 }
 
 /* 解答文（濃紺・即座に視認可能） */
-[data-theme="highsense"] .card-answer-main {
+[data-theme="light"] .card-answer-main {
   color: #0b132b !important;
   font-weight: 900 !important;
   text-shadow: none !important;
 }
 
-[data-theme="highsense"] .card-answer-main.en,
-[data-theme="highsense"] .card-answer-main.ja {
+[data-theme="light"] .card-answer-main.en,
+[data-theme="light"] .card-answer-main.ja {
   color: #0b132b !important;
   text-shadow: none !important;
 }
 
-[data-theme="highsense"] .card-answer-sub {
+[data-theme="light"] .card-answer-sub {
   color: #1e293b !important;
   font-weight: 700 !important;
 }
 
-[data-theme="highsense"] .deck-tag {
+[data-theme="light"] .deck-tag {
   color: #475569 !important;
 }
 
 /* 例文ボックス（薄紫カード内に置く白ピルボックス） */
-[data-theme="highsense"] .example-box {
+[data-theme="light"] .example-box {
   background: #ffffff !important;
   border: 1px solid #c7d2fe !important;
   border-radius: 12px !important;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.06) !important;
 }
 
-[data-theme="highsense"] .example-badge {
+[data-theme="light"] .example-badge {
   background: #e0e7ff !important;
   color: #4338ca !important;
   font-weight: 800 !important;
 }
 
-[data-theme="highsense"] .example-en {
+[data-theme="light"] .example-en {
   color: #0b132b !important;
   font-weight: 700 !important;
 }
 
-[data-theme="highsense"] .example-ja {
+[data-theme="light"] .example-ja {
   color: #334155 !important;
 }
 
 /* アドバイス枠 */
-[data-theme="highsense"] .advice-accordion {
+[data-theme="light"] .advice-accordion {
   background: #ffffff !important;
   border: 1px solid #c7d2fe !important;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.06) !important;
 }
 
-[data-theme="highsense"] .advice-title,
-[data-theme="highsense"] .advice-arrow {
+[data-theme="light"] .advice-title,
+[data-theme="light"] .advice-arrow {
   color: #4338ca !important;
   font-weight: 800 !important;
 }
 
-[data-theme="highsense"] .advice-body {
+[data-theme="light"] .advice-body {
   color: #1e293b !important;
   border-top: 1px dashed #cbd5e1 !important;
 }
 
 /* スピーカーボタン */
-[data-theme="highsense"] .speaker-btn {
+[data-theme="light"] .speaker-btn {
   background: #ffffff !important;
   border: 1px solid #c7d2fe !important;
   color: #4338ca !important;
   box-shadow: 0 2px 6px rgba(99, 102, 241, 0.15) !important;
 }
 
-[data-theme="highsense"] .speaker-btn:active {
+[data-theme="light"] .speaker-btn:active {
   background: #4f46e5 !important;
   color: #ffffff !important;
 }
@@ -1796,7 +1688,7 @@ html, body {
 /* ========================================================
    主操作ボタン群（明るい青紫 LED発光 & 赤通知）
    ======================================================== */
-[data-theme="highsense"] .bottom-bar {
+[data-theme="light"] .bottom-bar {
   background: rgba(255, 255, 255, 0.96) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
@@ -1804,7 +1696,7 @@ html, body {
 }
 
 /* 「答えを表示」主操作ボタン（元の洗練された青紫LED光彩） */
-[data-theme="highsense"] .btn-action.btn-flip {
+[data-theme="light"] .btn-action.btn-flip {
   background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
   color: #ffffff !important;
   border: none !important;
@@ -1812,13 +1704,13 @@ html, body {
   text-shadow: none !important;
 }
 
-[data-theme="highsense"] .btn-action.btn-flip:active {
+[data-theme="light"] .btn-action.btn-flip:active {
   background: #4338ca !important;
   transform: scale(0.97) !important;
 }
 
 /* 「👀」のアイコン周りだけ明るいピンクアクセント（ジュエル風サークル） */
-[data-theme="highsense"] .btn-action.btn-flip .action-icon {
+[data-theme="light"] .btn-action.btn-flip .action-icon {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -1833,7 +1725,7 @@ html, body {
 }
 
 /* 不正解ボタン（赤〜ピンクの特殊警告状態） */
-[data-theme="highsense"] .btn-action.btn-wrong {
+[data-theme="light"] .btn-action.btn-wrong {
   background: #fff1f2 !important;
   color: #e11d48 !important;
   border: 1.5px solid #fda4af !important;
@@ -1841,7 +1733,7 @@ html, body {
 }
 
 /* 正解ボタン（知的で落ち着いた濃紫ブルー） */
-[data-theme="highsense"] .btn-action.btn-correct {
+[data-theme="light"] .btn-action.btn-correct {
   background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
   color: #ffffff !important;
   border: none !important;
@@ -1849,8 +1741,8 @@ html, body {
 }
 
 /* 同期ボタン・ヘッダーアイコン */
-[data-theme="highsense"] .sync-btn,
-[data-theme="highsense"] .icon-btn {
+[data-theme="light"] .sync-btn,
+[data-theme="light"] .icon-btn {
   background: #ffffff !important;
   color: #0b132b !important;
   border: 1px solid #e2e8f0 !important;
@@ -1858,8 +1750,8 @@ html, body {
 }
 
 /* 特殊状態・通知バッジ（赤〜ピンク） */
-[data-theme="highsense"] .drill-mode-badge,
-[data-theme="highsense"] .sync-badge.error {
+[data-theme="light"] .drill-mode-badge,
+[data-theme="light"] .sync-badge.error {
   background: #f43f5e !important;
   color: #ffffff !important;
   border: 1px solid #e11d48 !important;
@@ -1867,35 +1759,35 @@ html, body {
 }
 
 /* モーダル */
-[data-theme="highsense"] .modal-sheet {
+[data-theme="light"] .modal-sheet {
   background: #ffffff !important;
   color: #0b132b !important;
   border: 1px solid #e2e8f0 !important;
   box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.14) !important;
 }
 
-[data-theme="highsense"] .modal-title {
+[data-theme="light"] .modal-title {
   color: #0b132b !important;
   font-weight: 800 !important;
 }
 
-[data-theme="highsense"] .form-label {
+[data-theme="light"] .form-label {
   color: #1e293b !important;
 }
 
-[data-theme="highsense"] .form-input {
+[data-theme="light"] .form-input {
   background: #ffffff !important;
   color: #0b132b !important;
   border: 1.5px solid #cbd5e1 !important;
 }
 
-[data-theme="highsense"] .btn-modal-action {
+[data-theme="light"] .btn-modal-action {
   background: #ffffff !important;
   color: #1e293b !important;
   border: 1px solid #cbd5e1 !important;
 }
 
-[data-theme="highsense"] .btn-modal-action.primary {
+[data-theme="light"] .btn-modal-action.primary {
   background: #6366f1 !important;
   color: #ffffff !important;
   border: none !important;
@@ -1903,24 +1795,24 @@ html, body {
 }
 
 /* PWAバナー（暗色背景のため白文字を強制） */
-[data-theme="highsense"] .pwa-banner,
-[data-theme="highsense"] .pwa-banner span {
+[data-theme="light"] .pwa-banner,
+[data-theme="light"] .pwa-banner span {
   color: #ffffff !important;
 }
 
 /* 前へ・次へナビゲーションボタン（暗色背景にクッキリ白文字） */
-[data-theme="highsense"] .btn-browse-nav {
+[data-theme="light"] .btn-browse-nav {
   background: #1e293b !important;
   color: #ffffff !important;
   border: 1px solid #334155 !important;
 }
 
-[data-theme="highsense"] .btn-browse-nav:active:not(.disabled) {
+[data-theme="light"] .btn-browse-nav:active:not(.disabled) {
   background: #334155 !important;
   color: #ffffff !important;
 }
 
-[data-theme="highsense"] .btn-browse-nav.disabled {
+[data-theme="light"] .btn-browse-nav.disabled {
   background: rgba(30, 41, 59, 0.5) !important;
   color: rgba(255, 255, 255, 0.35) !important;
   opacity: 0.5 !important;
