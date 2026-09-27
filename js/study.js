@@ -1,4 +1,4 @@
-﻿/**
+/**
  * study.js - MEMORY HACK Mobile 学習マネージャー
  * 
  * 主要機能:
@@ -10,7 +10,7 @@
  */
 
 const StudyManager = {
-  version: '1.2.0-mobile',
+  version: '1.4.0-mobile',
   cards: [],
   queue: [],
   currentIndex: 0,
@@ -737,6 +737,21 @@ const StudyManager = {
     `;
     const actionContainer = document.getElementById('bottom-action-bar');
     if (actionContainer) actionContainer.innerHTML = '';
+
+    // 学習履歴ログの送信処理（保護者見守りWebhookへの送信）
+    if (typeof SyncManager !== 'undefined' && SyncManager.sendStudyReport) {
+      const durationMin = this.stats.sessionStartTime
+        ? Math.max(1, Math.round((Date.now() - this.stats.sessionStartTime) / 60000))
+        : 1;
+      SyncManager.sendStudyReport({
+        answered: answered,
+        correct: correct,
+        wrong: this.stats.wrongCount,
+        accuracy: acc,
+        durationMinutes: durationMin,
+        startTimeStr: this.stats.sessionStartTime ? new Date(this.stats.sessionStartTime).toLocaleTimeString() : ''
+      }).catch(e => console.warn('Study report send skipped:', e));
+    }
   },
 
   // =========================================================================

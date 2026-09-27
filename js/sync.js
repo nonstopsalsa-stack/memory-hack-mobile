@@ -127,16 +127,9 @@ const SyncManager = {
         const remoteTime = new Date(data.updatedAt).getTime();
         const localTime = this.lastRemoteUpdatedAt ? new Date(this.lastRemoteUpdatedAt).getTime() : 0;
         const currentCards = await Storage.getAllCards();
-        const remoteCount = typeof data.count === 'number' ? data.count : (parseInt(data.count, 10) || 0);
-        const currentCount = currentCards.length;
 
-        // リモート更新日時の進捗、初期カード状態、またはカード枚数の不一致時に同期を発動
-        const isTimeAdvanced = remoteTime > localTime;
-        const isInitialState = currentCards.length <= 3;
-        const isCountMismatch = (remoteCount > 0 && remoteCount !== currentCount);
-
-        if (isTimeAdvanced || isInitialState || isCountMismatch) {
-          console.log(`[Sync] Remote update detected (remoteTime: ${remoteTime}, localTime: ${localTime}, remoteCount: ${remoteCount}, currentCount: ${currentCount}). Pulling deck...`);
+        if (remoteTime > localTime || currentCards.length <= 3) {
+          console.log('[Sync] Remote update detected. Pulling deck...');
           if (autoPull) {
             await this.pullDeck({ silent: true });
           } else {
@@ -153,7 +146,7 @@ const SyncManager = {
   },
 
   /**
-   * クラウドから最新カードとデッキ順序を取得
+   * クラウドから最新カードとデッキ順序を取得（完全受信専用・100%全置換）
    */
   async pullDeck(options = {}) {
     const { silent = false } = options;
@@ -170,36 +163,10 @@ const SyncManager = {
       const remoteCards = data.cards;
       const remoteUpdatedAt = data.updatedAt || new Date().toISOString();
 
-      // ローカルの既存カードと学習履歴（repetitionLevel等）をマージ
-      const localCards = await Storage.getAllCards();
-      const localMap = new Map();
-      localCards.forEach(c => {
-        const key = (c.front || '').trim().toLowerCase();
-        if (key) localMap.set(key, c);
-      });
-
-      const mergedCards = remoteCards.map(rc => {
-        const key = (rc.front || '').trim().toLowerCase();
-        const existing = localMap.get(key);
-        if (existing) {
-          return {
-            ...rc,
-            repetitionLevel: existing.repetitionLevel !== undefined ? existing.repetitionLevel : 0,
-            reviewCount: existing.reviewCount || 0,
-            lastReviewedAt: existing.lastReviewedAt || null,
-            nextReviewDate: existing.nextReviewDate || null
-          };
-        }
-        return {
-          ...rc,
-          repetitionLevel: 0,
-          reviewCount: 0,
-          lastReviewedAt: null,
-          nextReviewDate: null
-        };
-      });
-
-      await Storage.saveAllCards(mergedCards);
+      // ★ 完全受信専用化（全置換同期）：
+      // 差分マージ処理・Tombstone判定・ローカル比較を完全に排除し、
+      // 親アプリから受信したカードデータでローカルを100%全置換（上書き保存）
+      await Storage.saveAllCards(remoteCards);
 
       // デッキ並び順
       if (data.deckOrder && typeof data.deckOrder === 'object') {
@@ -213,15 +180,15 @@ const SyncManager = {
 
       this.updateStatusBadge('success');
 
-      // 学習マネージャーに反映
+      // 学習マネージャーに全置換カードを反映
       if (typeof StudyManager !== 'undefined' && StudyManager.onDeckLoaded) {
-        await StudyManager.onDeckLoaded(mergedCards);
+        await StudyManager.onDeckLoaded(remoteCards);
       }
 
       if (!silent) {
-        App.showToast(`✅ ${mergedCards.length}枚のカードを受信・同期しました！`, 'success');
+        App.showToast(`✅ ${remoteCards.length}枚のカードを受信・全置換同期しました！`, 'success');
       }
-      return { success: true, count: mergedCards.length };
+      return { success: true, count: remoteCards.length };
 
     } catch (err) {
       console.error('pullDeck failed:', err);
@@ -232,6 +199,51 @@ const SyncManager = {
       return { success: false, error: err.message };
     } finally {
       this.isSyncing = false;
+    }
+  },
+
+  /**
+   * 学習履歴ログの送信処理（保護者見守りWebhookへの送信）
+   */
+  async sendStudyReport(sessionInfo = {}) {
+    let currentUrl = (this.syncUrl || '').trim();
+    if (!currentUrl) {
+      const config = window.APP_CONFIG || {};
+      currentUrl = config.defaultWebhookUrl ? config.defaultWebhookUrl.trim() : '';
+    }
+    if (!currentUrl) return { skipped: true };
+
+    try {
+      const allCards = await Storage.getAllCards();
+      const payload = {
+        type: 'study_report',
+        device: 'mobile',
+        timestamp: new Date().toISOString(),
+        dateString: new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' }),
+        startTime: sessionInfo.startTimeStr || '',
+        durationMinutes: sessionInfo.durationMinutes || 1,
+        cardsAnswered: sessionInfo.answered || 0,
+        correctCount: sessionInfo.correct || 0,
+        wrongCount: sessionInfo.wrong || 0,
+        accuracy: sessionInfo.accuracy || 0,
+        streak: sessionInfo.streak || 0,
+        maxStreak: sessionInfo.maxStreak || 0,
+        totalCards: allCards.length
+      };
+
+      await fetch(currentUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      return { success: true };
+    } catch (err) {
+      console.warn('[Sync] sendStudyReport failed:', err);
+      return { success: false, error: err.message };
     }
   }
 };
