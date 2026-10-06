@@ -1852,6 +1852,87 @@ html, body {
   box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
 }
 
+/* デッキ選択モーダル：ジャンル別階層ツリー (ライトテーマ) */
+[data-theme="light"] .hierarchy-tree-item.all-item {
+  background: linear-gradient(135deg, #eef2ff 0%, #ffffff 100%) !important;
+  border: 1px solid #c7d2fe !important;
+}
+
+[data-theme="light"] .hierarchy-tier1-group {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .hierarchy-tier1-group.open {
+  border-color: #a5b4fc !important;
+}
+
+[data-theme="light"] .hierarchy-tier1-header {
+  background: #ffffff !important;
+  color: #0b132b !important;
+}
+
+[data-theme="light"] .hierarchy-tier1-header.active {
+  background: #eef2ff !important;
+  border-left: 3px solid #6366f1 !important;
+}
+
+[data-theme="light"] .accordion-arrow {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .hierarchy-name {
+  color: #0b132b !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .hierarchy-count-badge {
+  background: #e0e7ff !important;
+  color: #4338ca !important;
+  border: 1px solid #c7d2fe !important;
+}
+
+[data-theme="light"] .btn-tree-select,
+[data-theme="light"] .btn-tier-select {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+[data-theme="light"] .btn-tree-select.selected,
+[data-theme="light"] .btn-tier-select.selected {
+  background: #6366f1 !important;
+  color: #ffffff !important;
+  border-color: #6366f1 !important;
+}
+
+[data-theme="light"] .hierarchy-tier2-container {
+  background: #f8fafc !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .hierarchy-tier2-header {
+  background: #ffffff !important;
+  color: #0b132b !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .hierarchy-tier2-header.active {
+  background: #eef2ff !important;
+  border-left: 3px solid #4f46e5 !important;
+}
+
+[data-theme="light"] .hierarchy-tier3-item {
+  background: #ffffff !important;
+  color: #0b132b !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .hierarchy-tier3-item.active {
+  background: #eef2ff !important;
+  border-left: 2px solid #6366f1 !important;
+}
+
 /* PWAバナー（暗色背景のため白文字を強制） */
 [data-theme="light"] .pwa-banner,
 [data-theme="light"] .pwa-banner span {
