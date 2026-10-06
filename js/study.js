@@ -10,21 +10,375 @@
  */
 
 const StudyManager = {
-  version: '1.5.2-mobile',
+  version: '1.6.0-kanji',
   cards: [],
   queue: [],
   currentIndex: 0,
   currentCard: null,
   currentPattern: 'en_to_ja',
+  currentKanjiQuestion: null,
   isFlipped: false,
   showAdvice: false,
+
+  // 漢字専用6大出題パターン定義
+  KANJI_PATTERNS: {
+    char_to_read: { name: '字 ➔ 読', desc: '漢字一文字 ➔ 代表的な読み方', badgeClass: 'badge-en-ja', hint: '読み・意味' },
+    read_to_char: { name: '読 ➔ 字', desc: '読み方（音訓ランダム） ➔ 漢字を書く ✍️', badgeClass: 'badge-ja-en', hint: '漢字書き取り' },
+    word_to_read: { name: '語 ➔ 読', desc: '熟語（候補ランダム） ➔ 熟語の読み方', badgeClass: 'badge-audio-ja', hint: '熟語の読み' },
+    read_to_word: { name: '読 ➔ 語', desc: '熟語の読み ➔ 熟語を書く ✍️', badgeClass: 'badge-audio-en', hint: '熟語書き取り' },
+    sentence_fill: { name: '文 ➔ 字', desc: '例文穴埋め（［ ］を空欄化） ➔ 漢字を書く ✍️', badgeClass: 'badge-ja-audio', hint: '実戦穴埋め' },
+    sentence_read: { name: '文 ➔ 読', desc: '例文傍線（対象語句を強調） ➔ 読みを答える', badgeClass: 'badge-en-audio', hint: '例文の読み' }
+  },
+
+  // 英語専用6大出題パターン定義
+  EN_PATTERNS: {
+    en_to_ja: { name: '英 ➔ 日', desc: '英語 ➔ 日本語 (意味想起)', badgeClass: 'badge-en-ja', hint: '意味想起' },
+    ja_to_en: { name: '日 ➔ 英', desc: '日本語 ➔ 英語 (瞬間英作文)', badgeClass: 'badge-ja-en', hint: '瞬間英作文' },
+    audio_to_ja: { name: '音 ➔ 日', desc: '音声 ➔ 日本語 (リスニング)', badgeClass: 'badge-audio-ja', hint: 'リスニング' },
+    audio_to_en: { name: '音 ➔ 英', desc: '音声 ➔ 英語 (ディクテーション)', badgeClass: 'badge-audio-en', hint: 'ディクテーション' },
+    ja_to_audio: { name: '日 ➔ 音', desc: '日本語 ➔ 音声 (発音想起)', badgeClass: 'badge-ja-audio', hint: '発音想起' },
+    en_to_audio: { name: '英 ➔ 音', desc: '英語 ➔ 音声 (フォニックス)', badgeClass: 'badge-en-audio', hint: 'フォニックス' }
+  },
 
   // 学習フィルター & モード
   selectedFilter: { level1: 'all', level2: 'all', level3: 'all' },
   filterMode: 'all_random', // 'due' | 'all_random' | 'weak' | 'mistakes_today' | 'sequence'
   itemTypeFilter: 'all',     // 'all' | 'word' | 'sentence'
   activePatterns: ['en_to_ja', 'ja_to_en', 'audio_to_ja', 'audio_to_en', 'ja_to_audio', 'en_to_audio'],
+  activePatternsKanji: ['char_to_read', 'read_to_char', 'word_to_read', 'read_to_word', 'sentence_fill', 'sentence_read'],
   autoPlayAudio: true,
+
+  /**
+   * 現在のカードが漢字カードか判定
+   */
+  isKanjiCard(card) {
+    if (!card) return false;
+    if (card.type === 'kanji') return true;
+    const cat = `${card.category1 || ''} ${card.category2 || ''} ${card.category3 || ''} ${card.deck || ''}`;
+    if (cat.includes('漢字') || cat.includes('漢検')) return true;
+    if (/^[\u4E00-\u9FAF]{1,4}$/.test((card.front || '').trim()) && /【?(音|訓|意味)】?/.test(card.back || '')) {
+      return true;
+    }
+    return false;
+  },
+
+  /**
+   * 現在のセッションまたはデッキが漢字モードか判定
+   */
+  isCurrentSessionKanji() {
+    if (this.currentCard) {
+      return this.isKanjiCard(this.currentCard);
+    }
+    const filter = this.selectedFilter || {};
+    const filterStr = `${filter.level1 || ''} ${filter.level2 || ''} ${filter.level3 || ''}`;
+    return filterStr.includes('漢字') || filterStr.includes('漢検');
+  },
+
+  /**
+   * 漢字カードの読み方（音読み・訓読み・意味）を安全パース
+   */
+  parseKanjiReadings(card) {
+    if (!card) return { onReadings: [], kunReadings: [], allReadings: [], meaning: '' };
+    const back = card.back || '';
+    const lines = back.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
+    let onReadings = [];
+    let kunReadings = [];
+    let meaning = '';
+
+    for (const line of lines) {
+      if (/^【?音(?:読み)?】?[:：]?\s*/i.test(line)) {
+        const val = line.replace(/^【?音(?:読み)?】?[:：]?\s*/i, '');
+        const items = val.split(/[,、・\s]+/).map(s => s.trim()).filter(Boolean);
+        onReadings.push(...items);
+      } else if (/^【?訓(?:読み)?】?[:：]?\s*/i.test(line)) {
+        const val = line.replace(/^【?訓(?:読み)?】?[:：]?\s*/i, '');
+        const items = val.split(/[,、・\s]+/).map(s => s.trim()).filter(Boolean);
+        kunReadings.push(...items);
+      } else if (/^【?意味】?[:：]?\s*/i.test(line)) {
+        meaning = line.replace(/^【?意味】?[:：]?\s*/i, '').trim();
+      } else if (!meaning && !/^【/.test(line)) {
+        meaning = line;
+      }
+    }
+
+    if (onReadings.length === 0 && kunReadings.length === 0) {
+      const katakanaMatches = back.match(/[\u30A1-\u30F6ー]+/g);
+      if (katakanaMatches) onReadings.push(...katakanaMatches);
+      const hiraganaMatches = back.match(/[\u3041-\u3096]+(?:-[\u3041-\u3096]+)?/g);
+      if (hiraganaMatches) kunReadings.push(...hiraganaMatches);
+    }
+
+    onReadings = [...new Set(onReadings)];
+    kunReadings = [...new Set(kunReadings)];
+
+    const allReadings = [
+      ...onReadings.map(r => ({ type: 'on', reading: r, label: '音読み' })),
+      ...kunReadings.map(r => ({ type: 'kun', reading: r, label: '訓読み' }))
+    ];
+
+    return { onReadings, kunReadings, allReadings, meaning: meaning || back };
+  },
+
+  /**
+   * 漢字カードの代表熟語（exampleフィールド）を安全パース
+   */
+  parseKanjiCompounds(card) {
+    if (!card || !card.example) return [];
+    const lines = card.example.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const compounds = [];
+
+    for (const line of lines) {
+      const m = line.match(/^([^\(（:：\s-]+)[（\(]([^\)）]+)[）\)][:：\s-]*(.*)$/);
+      if (m) {
+        compounds.push({ word: m[1].trim(), reading: m[2].trim(), meaning: (m[3] || '').trim() });
+        continue;
+      }
+      const parts = line.split(/[:：\s-]+/).map(p => p.trim()).filter(Boolean);
+      if (parts.length >= 2) {
+        compounds.push({ word: parts[0], reading: parts[1], meaning: parts.slice(2).join(' ') });
+      }
+    }
+
+    return compounds;
+  },
+
+  /**
+   * 漢字カードの例文を安全パース
+   */
+  parseKanjiSentence(card) {
+    const rawSent = (card && (card.exampleTranslation || card.example)) ? (card.exampleTranslation || card.example) : '';
+    if (!rawSent) return null;
+
+    const bracketMatch = rawSent.match(/\[([^\]]+)\]|［([^］]+)］/);
+    let target = '';
+    const sentence = rawSent;
+
+    if (bracketMatch) {
+      target = bracketMatch[1] || bracketMatch[2] || '';
+    } else if (card.front && rawSent.includes(card.front)) {
+      target = card.front;
+    }
+
+    return {
+      rawSentence: sentence,
+      target: target || card.front || '',
+      blankSentence: this.formatSentenceTarget(sentence, target, 'fill'),
+      highlightSentence: this.formatSentenceTarget(sentence, target, 'highlight')
+    };
+  },
+
+  /**
+   * 例文内の [ターゲット] を穴埋めまたはハイライトに変換
+   */
+  formatSentenceTarget(sentence, targetWord, mode = 'fill') {
+    if (!sentence) return '';
+    const text = sentence;
+    const bracketRegex = /\[([^\]]+)\]|［([^］]+)］/g;
+    
+    if (bracketRegex.test(text)) {
+      if (mode === 'fill') {
+        return text.replace(bracketRegex, '<span class="kanji-blank-box" style="display:inline-block;border:2px dashed #38bdf8;border-radius:6px;padding:2px 8px;background:rgba(56,189,248,0.15);color:#38bdf8;font-weight:bold;">［　　］</span>');
+      } else {
+        return text.replace(bracketRegex, (match, p1, p2) => {
+          const word = p1 || p2;
+          return `<span class="kanji-highlight-box" style="display:inline-block;border-bottom:3px solid #f59e0b;padding:0 4px;font-weight:bold;color:#f59e0b;">${escapeHtml(word)}</span>`;
+        });
+      }
+    }
+    
+    if (targetWord && text.includes(targetWord)) {
+      if (mode === 'fill') {
+        return text.split(targetWord).join('<span class="kanji-blank-box" style="display:inline-block;border:2px dashed #38bdf8;border-radius:6px;padding:2px 8px;background:rgba(56,189,248,0.15);color:#38bdf8;font-weight:bold;">［　　］</span>');
+      } else {
+        return text.split(targetWord).join(`<span class="kanji-highlight-box" style="display:inline-block;border-bottom:3px solid #f59e0b;padding:0 4px;font-weight:bold;color:#f59e0b;">${escapeHtml(targetWord)}</span>`);
+      }
+    }
+    return escapeHtml(text);
+  },
+
+  /**
+   * 動的ランダム候補抽出 & 安全フォールバック
+   */
+  pickKanjiQuestion(card, requestedPattern) {
+    const readings = this.parseKanjiReadings(card);
+    const compounds = this.parseKanjiCompounds(card);
+    const sentData = this.parseKanjiSentence(card);
+
+    let pattern = requestedPattern || 'char_to_read';
+
+    // 守り: 安全フォールバック
+    if ((pattern === 'word_to_read' || pattern === 'read_to_word') && compounds.length === 0) {
+      pattern = 'char_to_read';
+    }
+    if ((pattern === 'sentence_fill' || pattern === 'sentence_read') && (!sentData || !sentData.rawSentence)) {
+      pattern = compounds.length > 0 ? 'word_to_read' : 'char_to_read';
+    }
+    if (pattern === 'read_to_char' && readings.allReadings.length === 0) {
+      pattern = 'char_to_read';
+    }
+
+    const q = {
+      pattern,
+      requestedPattern,
+      card,
+      readings,
+      compounds,
+      sentData,
+      targetWord: card.front,
+      displayPrompt: '',
+      guideText: '',
+      guideClass: 'guide-ja',
+      answerMain: '',
+      answerSub: '',
+      fullReadingsHtml: ''
+    };
+
+    const onStr = readings.onReadings.join('、') || '—';
+    const kunStr = readings.kunReadings.join('、') || '—';
+    q.fullReadingsHtml = `
+      <div class="kanji-readings-grid" style="display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; background: rgba(15, 23, 42, 0.4); padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.9rem; text-align: left; margin: 8px 0;">
+        <span style="color: #f59e0b; font-weight: bold;">【音】</span><span>${escapeHtml(onStr)}</span>
+        <span style="color: #38bdf8; font-weight: bold;">【訓】</span><span>${escapeHtml(kunStr)}</span>
+        ${readings.meaning ? `<span style="color: #10b981; font-weight: bold;">【意】</span><span>${escapeHtml(readings.meaning)}</span>` : ''}
+      </div>
+    `;
+
+    switch (pattern) {
+      case 'char_to_read': {
+        q.targetWord = card.front;
+        q.displayPrompt = `<span class="target-kanji-huge" style="font-size: 4rem; font-weight: 800; color: #f8fafc;">${escapeHtml(card.front)}</span>`;
+        q.guideText = '🇯🇵 読み・意味を想起';
+        q.answerMain = `
+          <div style="font-size: 1.5rem; font-weight: bold; color: #38bdf8; margin-bottom: 6px;">
+            ${escapeHtml(readings.allReadings.map(r => `${r.label}: ${r.reading}`).join('　') || card.back)}
+          </div>
+        `;
+        q.answerSub = q.fullReadingsHtml;
+        break;
+      }
+      case 'read_to_char': {
+        const selected = readings.allReadings.length > 0
+          ? readings.allReadings[Math.floor(Math.random() * readings.allReadings.length)]
+          : null;
+        const promptReading = selected ? `${selected.label}: ${selected.reading}` : (card.back || '—');
+        q.targetWord = card.front;
+        q.displayPrompt = `
+          <div style="font-size: 1.6rem; font-weight: bold; color: #38bdf8; text-align: center; padding: 8px 0;">
+            ${escapeHtml(promptReading)}
+          </div>
+          ${readings.meaning ? `<div style="font-size: 0.95rem; color: #94a3b8; text-align: center; margin-top: 2px;">（${escapeHtml(readings.meaning)}）</div>` : ''}
+        `;
+        q.guideText = '✍️ 漢字一文字を書く';
+        q.answerMain = `<span class="target-kanji-huge" style="font-size: 4rem; font-weight: 800; color: #f8fafc;">${escapeHtml(card.front)}</span>`;
+        q.answerSub = q.fullReadingsHtml;
+        break;
+      }
+      case 'word_to_read': {
+        const comp = compounds[Math.floor(Math.random() * compounds.length)];
+        q.targetWord = comp.word;
+        q.selectedCompound = comp;
+        q.displayPrompt = `
+          <div style="font-size: 2rem; font-weight: bold; color: #f8fafc; letter-spacing: 0.1em; text-align: center; padding: 10px 0;">
+            ${escapeHtml(comp.word)}
+          </div>
+        `;
+        q.guideText = '🇯🇵 熟語の読みを答える';
+        q.answerMain = `
+          <div style="font-size: 1.8rem; font-weight: bold; color: #38bdf8; text-align: center;">
+            ${escapeHtml(comp.reading)}
+          </div>
+          ${comp.meaning ? `<div style="font-size: 1rem; color: #cbd5e1; margin-top: 6px; text-align: center;">意味: ${escapeHtml(comp.meaning)}</div>` : ''}
+        `;
+        q.answerSub = `
+          <div style="font-size: 1rem; color: #94a3b8; margin-top: 8px; text-align: center;">
+            対象漢字: <strong style="font-size: 1.3rem; color: #f59e0b;">${escapeHtml(card.front)}</strong>
+          </div>
+        `;
+        break;
+      }
+      case 'read_to_word': {
+        const comp = compounds[Math.floor(Math.random() * compounds.length)];
+        q.targetWord = comp.word;
+        q.selectedCompound = comp;
+        q.displayPrompt = `
+          <div style="font-size: 1.8rem; font-weight: bold; color: #38bdf8; text-align: center; padding: 8px 0;">
+            ${escapeHtml(comp.reading)}
+          </div>
+          ${comp.meaning ? `<div style="font-size: 0.95rem; color: #94a3b8; margin-top: 4px; text-align: center;">（意味: ${escapeHtml(comp.meaning)}）</div>` : ''}
+        `;
+        q.guideText = '✍️ 熟語を書く';
+        q.answerMain = `
+          <div style="font-size: 2.2rem; font-weight: bold; color: #f8fafc; letter-spacing: 0.1em; text-align: center;">
+            ${escapeHtml(comp.word)}
+          </div>
+        `;
+        q.answerSub = `
+          <div style="font-size: 1rem; color: #94a3b8; margin-top: 8px; text-align: center;">
+            読み: <strong style="color: #38bdf8;">${escapeHtml(comp.reading)}</strong>
+            ${comp.meaning ? ` ｜ 意味: ${escapeHtml(comp.meaning)}` : ''}
+          </div>
+        `;
+        break;
+      }
+      case 'sentence_fill': {
+        q.targetWord = sentData ? sentData.target : card.front;
+        q.displayPrompt = `
+          <div style="font-size: 1.2rem; line-height: 1.7; text-align: left; padding: 12px 16px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px;">
+            ${sentData ? sentData.blankSentence : ''}
+          </div>
+        `;
+        q.guideText = '✍️ ［ ］に入る漢字を書く';
+        q.answerMain = `
+          <span class="target-kanji-huge" style="font-size: 3rem; font-weight: 800; color: #f8fafc;">${escapeHtml(q.targetWord)}</span>
+        `;
+        q.answerSub = `
+          <div style="margin-top: 10px; font-size: 1rem; line-height: 1.6; text-align: left;">
+            ${sentData ? sentData.highlightSentence : ''}
+          </div>
+          ${q.fullReadingsHtml}
+        `;
+        break;
+      }
+      case 'sentence_read': {
+        q.targetWord = sentData ? sentData.target : card.front;
+        q.displayPrompt = `
+          <div style="font-size: 1.2rem; line-height: 1.7; text-align: left; padding: 12px 16px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px;">
+            ${sentData ? sentData.highlightSentence : ''}
+          </div>
+        `;
+        q.guideText = '🇯🇵 傍線（強調部）の読みを答える';
+
+        let matchedReading = '';
+        const comp = compounds.find(c => c.word === q.targetWord);
+        if (comp) {
+          matchedReading = comp.reading;
+        } else if (readings.allReadings.length > 0) {
+          matchedReading = readings.allReadings.map(r => r.reading).join(' / ');
+        } else {
+          matchedReading = card.back;
+        }
+
+        q.answerMain = `
+          <div style="font-size: 1.8rem; font-weight: bold; color: #38bdf8; text-align: center;">
+            ${escapeHtml(matchedReading)}
+          </div>
+          <div style="font-size: 1.1rem; color: #f8fafc; margin-top: 4px; text-align: center;">
+            （${escapeHtml(q.targetWord)}）
+          </div>
+        `;
+        q.answerSub = `
+          <div style="margin-top: 10px; font-size: 1rem; line-height: 1.6; text-align: left;">
+            ${sentData ? sentData.highlightSentence : ''}
+          </div>
+          ${q.fullReadingsHtml}
+        `;
+        break;
+      }
+    }
+
+    return q;
+  },
 
   // 誤答完全クリア特訓用状態
   isDrillMode: false,
@@ -56,6 +410,10 @@ const StudyManager = {
     if (savedPatterns && Array.isArray(savedPatterns) && savedPatterns.length > 0) {
       this.activePatterns = savedPatterns;
     }
+    const savedKanjiPatterns = await Storage.getSetting('study_active_patterns_kanji', null);
+    if (savedKanjiPatterns && Array.isArray(savedKanjiPatterns) && savedKanjiPatterns.length > 0) {
+      this.activePatternsKanji = savedKanjiPatterns;
+    }
 
     this.selectedFilter = await Storage.getFilterState();
     this.filterMode = await Storage.getSetting('study_filter_mode', 'all_random');
@@ -78,6 +436,7 @@ const StudyManager = {
   async onDeckLoaded(newCards) {
     this.cards = newCards;
     this.updateDeckTriggerButton();
+    this.renderPatternSelector();
     await this.buildQueue();
     this.showNextCard();
   },
@@ -120,24 +479,42 @@ const StudyManager = {
     this.selectedFilter = filter;
     await Storage.saveFilterState(filter);
     this.updateDeckTriggerButton();
+    this.renderPatternSelector();
     await this.buildQueue();
     this.showNextCard();
   },
 
   /**
-   * 出題パターン設定ボタンの表示更新
+   * 出題パターン設定ボタン・モーダルの表示更新（漢字/英語動的切り替え）
    */
   renderPatternSelector() {
+    const isKanji = this.isCurrentSessionKanji();
+    const activeList = isKanji ? this.activePatternsKanji : this.activePatterns;
     const btn = document.getElementById('pattern-btn-count');
     if (btn) {
-      btn.innerText = `${this.activePatterns.length}/6`;
+      btn.innerText = `${activeList.length}/6`;
     }
 
-    const checkboxes = document.querySelectorAll('input[name="pattern_checkbox"]');
-    const set = new Set(this.activePatterns);
-    checkboxes.forEach(cb => {
-      cb.checked = set.has(cb.value);
-    });
+    const modalTitle = document.querySelector('#modal-patterns .modal-title');
+    if (modalTitle) {
+      modalTitle.innerText = isKanji ? '🎯 漢字 6大出題パターン' : '🎯 出題パターンの選択 (全6種)';
+    }
+
+    const patternGrid = document.querySelector('#modal-patterns .pattern-grid');
+    if (patternGrid) {
+      const patternDict = isKanji ? this.KANJI_PATTERNS : this.EN_PATTERNS;
+      const set = new Set(activeList);
+      let html = '';
+      for (const [key, p] of Object.entries(patternDict)) {
+        html += `
+          <label class="pattern-item">
+            <input type="checkbox" name="pattern_checkbox" value="${key}" ${set.has(key) ? 'checked' : ''} onchange="App.onPatternChange()">
+            <span class="pattern-label">${p.name}: ${p.desc}</span>
+          </label>
+        `;
+      }
+      patternGrid.innerHTML = html;
+    }
   },
 
   /**
@@ -351,11 +728,28 @@ const StudyManager = {
   },
 
   pickCurrentPattern() {
-    const patterns = (this.activePatterns && this.activePatterns.length > 0)
-      ? this.activePatterns
-      : ['en_to_ja'];
-    const idx = Math.floor(Math.random() * patterns.length);
-    this.currentPattern = patterns[idx];
+    if (!this.currentCard) {
+      this.currentPattern = 'en_to_ja';
+      this.currentKanjiQuestion = null;
+      return;
+    }
+    const isKanji = this.isKanjiCard(this.currentCard);
+    if (isKanji) {
+      const patterns = (this.activePatternsKanji && this.activePatternsKanji.length > 0)
+        ? this.activePatternsKanji
+        : ['char_to_read'];
+      const idx = Math.floor(Math.random() * patterns.length);
+      const rawPattern = patterns[idx];
+      this.currentKanjiQuestion = this.pickKanjiQuestion(this.currentCard, rawPattern);
+      this.currentPattern = this.currentKanjiQuestion.pattern;
+    } else {
+      const patterns = (this.activePatterns && this.activePatterns.length > 0)
+        ? this.activePatterns
+        : ['en_to_ja'];
+      const idx = Math.floor(Math.random() * patterns.length);
+      this.currentPattern = patterns[idx];
+      this.currentKanjiQuestion = null;
+    }
   },
 
   /**
@@ -508,60 +902,94 @@ const StudyManager = {
     let questionHtml = '';
     let answerHtml = '';
 
-    const isAudioMode = (pattern === 'audio_to_ja' || pattern === 'audio_to_en');
-
-    if (!this.isFlipped) {
-      // ===== 表面（問題） =====
-      if (isAudioMode) {
+    const isKanji = this.isKanjiCard(card);
+    if (isKanji) {
+      const kq = this.currentKanjiQuestion || this.pickKanjiQuestion(card, pattern);
+      this.currentKanjiQuestion = kq;
+      if (!this.isFlipped) {
         questionHtml = `
-          <div class="audio-prompt-box" onclick="StudyManager.playCardAudio(); event.stopPropagation();">
-            <span class="audio-pulse-icon">🔊</span>
-            <div class="audio-prompt-text">タップして発音を聞く</div>
+          <div class="card-prompt-container" style="text-align: center; padding: 12px 4px;">
+            <div class="card-prompt-target" style="margin: 10px 0;">
+              ${kq.displayPrompt}
+            </div>
+            <div class="card-target-guide" style="color: #38bdf8; font-size: 1.05rem; font-weight: bold; margin-top: 12px;">
+              ${kq.guideText}
+            </div>
           </div>
         `;
-      } else if (pattern === 'ja_to_en' || pattern === 'ja_to_audio') {
-        questionHtml = `<div class="card-prompt-text ja">${escapeHtml(card.back)}</div>`;
       } else {
-        questionHtml = `<div class="card-prompt-text en">${escapeHtml(card.front)}</div>`;
+        answerHtml = `
+          <div class="card-answer-block" style="text-align: center; padding: 10px 4px;">
+            <div class="card-answer-badge" style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">🎯 正解</div>
+            <div class="card-answer-main" style="margin-bottom: 8px;">
+              ${kq.answerMain}
+            </div>
+            ${kq.answerSub}
+          </div>
+          ${card.advice ? `
+            <div class="advice-accordion expanded" style="margin-top: 12px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 14px; text-align: left;">
+              <div class="advice-header" style="font-size: 0.9rem; font-weight: bold; color: #f59e0b; margin-bottom: 4px;">💡 攻略アドバイス・AI解説</div>
+              <div class="advice-body" style="font-size: 0.85rem; line-height: 1.5; color: #e2e8f0; white-space: pre-wrap;">${escapeHtml(card.advice)}</div>
+            </div>
+          ` : ''}
+        `;
       }
     } else {
-      // ===== 裏面（解答） =====
-      answerHtml = `
-        <div class="card-answer-block">
-          <div class="card-answer-row">
-            <div class="card-answer-main ${pattern === 'ja_to_en' ? 'en' : 'ja'}">
-              ${escapeHtml(pattern === 'ja_to_en' ? card.front : card.back)}
-            </div>
-            <button class="speaker-btn" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く">
-              🔊
-            </button>
-          </div>
-          <div class="card-answer-sub">
-            ${escapeHtml(pattern === 'ja_to_en' ? card.back : card.front)}
-          </div>
-        </div>
+      const isAudioMode = (pattern === 'audio_to_ja' || pattern === 'audio_to_en');
 
-        ${card.example ? `
-          <div class="example-box">
-            <div class="example-header">
-              <span class="example-badge">例文</span>
-              <button class="example-speaker-btn" onclick="StudyManager.playExampleAudio(); event.stopPropagation();">🔊</button>
+      if (!this.isFlipped) {
+        // ===== 表面（問題） =====
+        if (isAudioMode) {
+          questionHtml = `
+            <div class="audio-prompt-box" onclick="StudyManager.playCardAudio(); event.stopPropagation();">
+              <span class="audio-pulse-icon">🔊</span>
+              <div class="audio-prompt-text">タップして発音を聞く</div>
             </div>
-            <div class="example-en">${escapeHtml(card.example)}</div>
-            ${card.exampleTranslation ? `<div class="example-ja">${escapeHtml(card.exampleTranslation)}</div>` : ''}
+          `;
+        } else if (pattern === 'ja_to_en' || pattern === 'ja_to_audio') {
+          questionHtml = `<div class="card-prompt-text ja">${escapeHtml(card.back)}</div>`;
+        } else {
+          questionHtml = `<div class="card-prompt-text en">${escapeHtml(card.front)}</div>`;
+        }
+      } else {
+        // ===== 裏面（解答） =====
+        answerHtml = `
+          <div class="card-answer-block">
+            <div class="card-answer-row">
+              <div class="card-answer-main ${pattern === 'ja_to_en' ? 'en' : 'ja'}">
+                ${escapeHtml(pattern === 'ja_to_en' ? card.front : card.back)}
+              </div>
+              <button class="speaker-btn" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く">
+                🔊
+              </button>
+            </div>
+            <div class="card-answer-sub">
+              ${escapeHtml(pattern === 'ja_to_en' ? card.back : card.front)}
+            </div>
           </div>
-        ` : ''}
 
-        ${card.advice ? `
-          <div class="advice-accordion expanded">
-            <div class="advice-header">
-              <span class="advice-title">💡 攻略アドバイス・AI解説</span>
-              <span class="advice-arrow">▲</span>
+          ${card.example ? `
+            <div class="example-box">
+              <div class="example-header">
+                <span class="example-badge">例文</span>
+                <button class="example-speaker-btn" onclick="StudyManager.playExampleAudio(); event.stopPropagation();">🔊</button>
+              </div>
+              <div class="example-en">${escapeHtml(card.example)}</div>
+              ${card.exampleTranslation ? `<div class="example-ja">${escapeHtml(card.exampleTranslation)}</div>` : ''}
             </div>
-            <div class="advice-body">${escapeHtml(card.advice)}</div>
-          </div>
-        ` : ''}
-      `;
+          ` : ''}
+
+          ${card.advice ? `
+            <div class="advice-accordion expanded">
+              <div class="advice-header">
+                <span class="advice-title">💡 攻略アドバイス・AI解説</span>
+                <span class="advice-arrow">▲</span>
+              </div>
+              <div class="advice-body">${escapeHtml(card.advice)}</div>
+            </div>
+          ` : ''}
+        `;
+      }
     }
 
     const modeBadge = this.isDrillMode
@@ -649,6 +1077,18 @@ const StudyManager = {
 
   getPatternInfo(pattern) {
     switch (pattern) {
+      case 'char_to_read':
+        return { badgeText: '⚔️ QUEST: 漢字の読み・意味を想起せよ！', badgeClass: 'badge-en-ja' };
+      case 'read_to_char':
+        return { badgeText: '✍️ QUEST: 読みから漢字一文字を書け！', badgeClass: 'badge-ja-en' };
+      case 'word_to_read':
+        return { badgeText: '📖 QUEST: 熟語の読み方を答えよ！', badgeClass: 'badge-audio-ja' };
+      case 'read_to_word':
+        return { badgeText: '✍️ QUEST: 熟語の読みから熟語を書け！', badgeClass: 'badge-audio-en' };
+      case 'sentence_fill':
+        return { badgeText: '🎯 QUEST: ［ ］に入る漢字を書け！', badgeClass: 'badge-ja-audio' };
+      case 'sentence_read':
+        return { badgeText: '🇯🇵 QUEST: 傍線（強調部）の読みを答えよ！', badgeClass: 'badge-en-audio' };
       case 'en_to_ja':
         return { badgeText: '⚔️ QUEST: 日本語の意味を言え！', badgeClass: 'badge-en-ja' };
       case 'ja_to_en':

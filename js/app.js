@@ -59,21 +59,15 @@ const App = {
       });
     });
 
-    // 出題パターンチェックボックス変更
-    const patternCheckboxes = document.querySelectorAll('input[name="pattern_checkbox"]');
-    patternCheckboxes.forEach(cb => {
-      cb.addEventListener('change', async () => {
-        const checked = Array.from(document.querySelectorAll('input[name="pattern_checkbox"]:checked')).map(c => c.value);
-        if (checked.length === 0) {
-          cb.checked = true;
-          this.showToast('⚠️ 最低1つの出題パターンを選択してください', 'warn');
-          return;
+    // 出題パターンチェックボックス変更イベント委譲
+    const modalPatterns = document.getElementById('modal-patterns');
+    if (modalPatterns) {
+      modalPatterns.addEventListener('change', (e) => {
+        if (e.target && e.target.name === 'pattern_checkbox') {
+          this.onPatternChange();
         }
-        StudyManager.activePatterns = checked;
-        await Storage.saveSetting('study_active_patterns', checked);
-        StudyManager.renderPatternSelector();
       });
-    });
+    }
 
     // キーボードショートカット（PCブラウザ検証・外部キーボード操作用）
     document.addEventListener('keydown', (e) => {
@@ -133,17 +127,45 @@ const App = {
     }
   },
 
+  // 出題パターンチェック変更
+  async onPatternChange() {
+    const isKanji = StudyManager.isCurrentSessionKanji();
+    const defaultPattern = isKanji ? 'char_to_read' : 'en_to_ja';
+    const checked = Array.from(document.querySelectorAll('input[name="pattern_checkbox"]:checked')).map(c => c.value);
+    if (checked.length === 0) {
+      const def = document.querySelector(`input[name="pattern_checkbox"][value="${defaultPattern}"]`);
+      if (def) def.checked = true;
+      this.showToast('⚠️ 最低1つの出題パターンを選択してください', 'warn');
+      return;
+    }
+    if (isKanji) {
+      StudyManager.activePatternsKanji = checked;
+      await Storage.saveSetting('study_active_patterns_kanji', checked);
+    } else {
+      StudyManager.activePatterns = checked;
+      await Storage.saveSetting('study_active_patterns', checked);
+    }
+    StudyManager.renderPatternSelector();
+  },
+
   // 出題パターン全選択/解除
-  toggleAllPatterns(selectAll) {
+  async toggleAllPatterns(selectAll) {
+    const isKanji = StudyManager.isCurrentSessionKanji();
+    const defaultPattern = isKanji ? 'char_to_read' : 'en_to_ja';
     const checkboxes = document.querySelectorAll('input[name="pattern_checkbox"]');
     checkboxes.forEach(cb => cb.checked = selectAll);
     if (!selectAll) {
-      const def = document.querySelector('input[name="pattern_checkbox"][value="en_to_ja"]');
+      const def = document.querySelector(`input[name="pattern_checkbox"][value="${defaultPattern}"]`);
       if (def) def.checked = true;
     }
     const checked = Array.from(document.querySelectorAll('input[name="pattern_checkbox"]:checked')).map(c => c.value);
-    StudyManager.activePatterns = checked;
-    Storage.saveSetting('study_active_patterns', checked);
+    if (isKanji) {
+      StudyManager.activePatternsKanji = checked;
+      await Storage.saveSetting('study_active_patterns_kanji', checked);
+    } else {
+      StudyManager.activePatterns = checked;
+      await Storage.saveSetting('study_active_patterns', checked);
+    }
     StudyManager.renderPatternSelector();
   },
 
