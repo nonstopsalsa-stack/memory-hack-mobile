@@ -126,6 +126,28 @@ foreach ($line in $lines) {
 
 Assert-Test ($allScoped -and ($testedSelectors -gt 0)) "All new hierarchy selectors ($testedSelectors found) are scoped under [data-theme=`"light`"]"
 
+# 4. Version consistency check (v1.4.1)
+$htmlFile = Join-Path $baseDir "index.html"
+$configJsFile = Join-Path $baseDir "js\config.js"
+$studyJsFile = Join-Path $baseDir "js\study.js"
+$appJsFile = Join-Path $baseDir "js\app.js"
+$swFile = Join-Path $baseDir "service-worker.js"
+
+$htmlContent = [System.IO.File]::ReadAllText($htmlFile, [System.Text.Encoding]::UTF8)
+$configContent = [System.IO.File]::ReadAllText($configJsFile, [System.Text.Encoding]::UTF8)
+$studyContent = [System.IO.File]::ReadAllText($studyJsFile, [System.Text.Encoding]::UTF8)
+$appContent = [System.IO.File]::ReadAllText($appJsFile, [System.Text.Encoding]::UTF8)
+$swContent = [System.IO.File]::ReadAllText($swFile, [System.Text.Encoding]::UTF8)
+
+Assert-Test ($htmlContent.Contains('<span class="brand-ver-badge">v1.4.1</span>')) "index.html: Brand badge is v1.4.1"
+Assert-Test ($htmlContent.Contains('<span class="modal-subtitle">MEMORY HACK Mobile v1.4.1</span>')) "index.html: Modal subtitle is v1.4.1"
+Assert-Test ($htmlContent.Contains('<link rel="stylesheet" href="css/mobile.css?v=1.4.1">')) "index.html: mobile.css cache buster is ?v=1.4.1"
+Assert-Test ($configContent.Contains('version: "1.4.1-mobile"')) "config.js: version is 1.4.1-mobile"
+Assert-Test ($studyContent.Contains("version: '1.4.1-mobile'")) "study.js: version is 1.4.1-mobile"
+Assert-Test ($appContent.Contains("MEMORY HACK Mobile v1.4.1 Initializing...")) "app.js: init log is v1.4.1"
+Assert-Test ($swContent.Contains("const CACHE_NAME = 'memory-hack-mobile-v1.4.1';")) "service-worker.js: CACHE_NAME is v1.4.1"
+Assert-Test ($swContent.Contains("'./css/mobile.css?v=1.4.1'")) "service-worker.js: mobile.css cache asset is ?v=1.4.1"
+
 Write-Host "`n=== Test Summary ===" -ForegroundColor Cyan
 Write-Host "PASS: $passed" -ForegroundColor Green
 Write-Host "FAIL: $failed" -ForegroundColor $(if ($failed -eq 0) { "Green" } else { "Red" })
