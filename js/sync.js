@@ -160,8 +160,29 @@ const SyncManager = {
         throw new Error('クラウド上にカードデータが見つかりませんでした。');
       }
 
-      const remoteCards = data.cards;
+      let remoteCards = data.cards;
       const remoteUpdatedAt = data.updatedAt || new Date().toISOString();
+
+      // ★ プロファイルに基づくフィルタリング (v1.5.0 / v2.39.0連動)
+      const deviceProfile = await Storage.getSetting('deviceProfile', 'all');
+      if (deviceProfile !== 'all' && Array.isArray(data.projects) && data.projects.length > 0) {
+        const allowedProjectIds = new Set();
+        data.projects.forEach(p => {
+          const dist = p.distribution || {};
+          if (dist.targetMobile === false) return;
+          if (Array.isArray(dist.targetProfiles) && dist.targetProfiles.length > 0) {
+            if (dist.targetProfiles.includes(deviceProfile)) {
+              allowedProjectIds.add(p.id);
+            }
+          } else {
+            allowedProjectIds.add(p.id);
+          }
+        });
+        remoteCards = remoteCards.filter(c => {
+          const pId = c.projectDeckId || 'deck_default';
+          return allowedProjectIds.has(pId);
+        });
+      }
 
       // ★ 完全受信専用化（全置換同期）：
       // 差分マージ処理・Tombstone判定・ローカル比較を完全に排除し、
