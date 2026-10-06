@@ -87,10 +87,11 @@ const SyncManager = {
       script.src = jsonpUrl;
       script.async = true;
 
+      // 400枚以上の大容量カード受信やモバイル回線遅延に対応するためタイムアウトを35秒に拡大 (PC版と完全一致)
       const timer = setTimeout(() => {
         cleanup();
-        reject(new Error('JSONP request timed out (15s)'));
-      }, 15000);
+        reject(new Error('クラウド通信がタイムアウトしました (35秒)。\n回線速度をご確認の上、もう一度お試しください。'));
+      }, 35000);
 
       function cleanup() {
         clearTimeout(timer);
@@ -107,7 +108,7 @@ const SyncManager = {
 
       script.onerror = function(err) {
         cleanup();
-        reject(new Error('JSONP network error'));
+        reject(new Error('クラウド通信スクリプトの読み込みに失敗しました。\n接続先URLやネットワーク環境をご確認ください。'));
       };
 
       document.body.appendChild(script);

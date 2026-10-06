@@ -6,7 +6,7 @@ const App = {
   deferredPrompt: null,
 
   async init() {
-    console.log('[App] MEMORY HACK Mobile v1.5.1 Initializing...');
+    console.log('[App] MEMORY HACK Mobile v1.5.2 Initializing...');
 
     // 0. テーマ初期化 (デフォルトは正式な「ライト」)
     try {
@@ -27,7 +27,7 @@ const App = {
     }
 
     // 起動トースト表示
-    this.showToast('🚀 MEMORY HACK Mobile v1.5.1 準備完了', 'info');
+    this.showToast('🚀 MEMORY HACK Mobile v1.5.2 準備完了', 'info');
 
     // 2. イベントリスナー登録
     this.bindEvents();
@@ -251,8 +251,21 @@ const App = {
 
   registerServiceWorker() {
     if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
-      navigator.serviceWorker.register('./service-worker.js').then((reg) => {
+      navigator.serviceWorker.register('./service-worker.js?v=1.5.2', { updateViaCache: 'none' }).then((reg) => {
         console.log('[SW] Registered successfully:', reg.scope);
+        // 起動時に毎回バックグラウンドで最新SWの存在を即時チェック
+        reg.update().catch(() => {});
+        reg.onupdatefound = () => {
+          const installingWorker = reg.installing;
+          if (installingWorker) {
+            installingWorker.onstatechange = () => {
+              if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[SW] New version installed, reloading page for seamless update...');
+                window.location.reload();
+              }
+            };
+          }
+        };
       }).catch((err) => {
         console.warn('[SW] Registration failed:', err);
       });
