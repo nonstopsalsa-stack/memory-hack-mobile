@@ -6,7 +6,7 @@ const App = {
   deferredPrompt: null,
 
   async init() {
-    console.log('[App] MEMORY HACK Mobile v1.5.2 Initializing...');
+    console.log('[App] MEMORY HACK Mobile v2.0.0 Initializing...');
 
     // 0. テーマ初期化 (デフォルトは正式な「ライト」)
     try {
@@ -27,7 +27,7 @@ const App = {
     }
 
     // 起動トースト表示
-    this.showToast('🚀 MEMORY HACK Mobile v1.5.2 準備完了', 'info');
+    this.showToast('🚀 MEMORY HACK Mobile v2.0.0 準備完了', 'info');
 
     // 2. イベントリスナー登録
     this.bindEvents();
@@ -133,7 +133,7 @@ const App = {
   // 出題パターンチェック変更
   async onPatternChange() {
     const isKanji = StudyManager.isCurrentSessionKanji();
-    const defaultPattern = isKanji ? 'char_to_read' : 'en_to_ja';
+    const defaultPattern = isKanji ? 'char_to_read' : 'front_to_back';
     let checked = Array.from(document.querySelectorAll('input[name="pattern_checkbox"]:checked')).map(c => c.value);
 
     if (isKanji) {
@@ -141,11 +141,10 @@ const App = {
       StudyManager.activePatternsKanji = checked;
       await Storage.saveSetting('study_active_patterns_kanji', checked);
     } else {
-      const validEnKeys = Object.keys(StudyManager.EN_PATTERNS || {});
-      checked = checked.filter(k => validEnKeys.includes(k));
+      checked = StudyManager.sanitizeUniversalPatterns(checked);
       if (checked.length === 0) checked = [defaultPattern];
       StudyManager.activePatterns = checked;
-      await Storage.saveSetting('study_active_patterns', checked);
+      await Storage.saveSetting('study_active_patterns_universal', checked);
     }
 
     StudyManager.renderPatternSelector();
@@ -159,7 +158,7 @@ const App = {
   // 出題パターン全選択/解除
   async toggleAllPatterns(selectAll) {
     const isKanji = StudyManager.isCurrentSessionKanji();
-    const defaultPattern = isKanji ? 'char_to_read' : 'en_to_ja';
+    const defaultPattern = isKanji ? 'char_to_read' : 'front_to_back';
     const checkboxes = document.querySelectorAll('input[name="pattern_checkbox"]');
     checkboxes.forEach(cb => cb.checked = selectAll);
     if (!selectAll) {
@@ -173,11 +172,10 @@ const App = {
       StudyManager.activePatternsKanji = checked;
       await Storage.saveSetting('study_active_patterns_kanji', checked);
     } else {
-      const validEnKeys = Object.keys(StudyManager.EN_PATTERNS || {});
-      checked = checked.filter(k => validEnKeys.includes(k));
+      checked = StudyManager.sanitizeUniversalPatterns(checked);
       if (checked.length === 0) checked = [defaultPattern];
       StudyManager.activePatterns = checked;
-      await Storage.saveSetting('study_active_patterns', checked);
+      await Storage.saveSetting('study_active_patterns_universal', checked);
     }
 
     StudyManager.renderPatternSelector();

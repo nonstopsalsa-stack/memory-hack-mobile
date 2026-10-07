@@ -1970,4 +1970,178 @@ html, body {
 :root:not([data-theme="light"]):not([data-theme="dark"]) .brand-logo .logo-intellect {
   display: none !important;
 }
+
+/* ==========================================================================
+   汎用フラッシュカード刷新 (算数文章題・マーケ用語・画像対応・可変レイアウト)
+   ========================================================================== */
+
+/* 1. 動的フォントスケーリング */
+.card-prompt-text.text-hero,
+.card-answer-main.text-hero {
+  font-size: clamp(2.2rem, 7vw, 3.2rem) !important;
+  font-weight: 900 !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
+.card-prompt-text.text-large,
+.card-answer-main.text-large {
+  font-size: clamp(1.6rem, 5.2vw, 2.2rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.35 !important;
+  text-align: center;
+}
+
+.card-prompt-text.text-medium,
+.card-answer-main.text-medium {
+  font-size: clamp(1.2rem, 3.8vw, 1.5rem) !important;
+  font-weight: 700 !important;
+  line-height: 1.6 !important;
+  text-align: left !important;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.card-prompt-text.text-content,
+.card-answer-main.text-content {
+  font-size: clamp(1.0rem, 3.2vw, 1.25rem) !important;
+  font-weight: 600 !important;
+  line-height: 1.7 !important;
+  text-align: left !important;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+/* 2. ガイド表示 (汎用エメラルドグリーン) */
+.card-target-guide.guide-universal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  border: 1.5px dashed #10b981;
+  color: #a7f3d0;
+  background: rgba(6, 78, 59, 0.35);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+  margin-top: 10px;
+}
+
+[data-theme="light"] .card-target-guide.guide-universal {
+  border-color: #059669;
+  color: #047857;
+  background: #ecfdf5;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.12);
+}
+
+/* 3. カード内画像表示コンテナ */
+.card-image-display-box {
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 10px auto;
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.card-display-img {
+  max-width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 8px;
+  cursor: zoom-in;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  display: block;
+}
+
+.card-display-img:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.card-image-zoom-hint {
+  position: absolute;
+  bottom: 6px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #f1f5f9;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+}
+
+/* 4. ライトボックスモーダル（タップで全画面拡大） */
+.image-lightbox-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.image-lightbox-modal.hidden {
+  display: none !important;
+}
+
+.lightbox-content-wrap {
+  position: relative;
+  max-width: 96vw;
+  max-height: 92vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-img {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.lightbox-close-btn {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(30, 41, 59, 0.9);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 1.1rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* 5. カード内長文スクロール保護 */
+.card-body {
+  overflow-y: auto !important;
+  max-height: calc(100dvh - 280px) !important;
+  -webkit-overflow-scrolling: touch;
+}
+
 

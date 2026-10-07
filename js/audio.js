@@ -53,11 +53,23 @@ const AudioManager = {
     if (!this.voices || this.voices.length === 0) {
       this.loadVoices();
     }
-    // Google TTS (Android Chrome標準) または en-US の音声を優先検索
-    const voice = this.voices.find(v => v.lang.replace('_', '-').startsWith(lang) && (v.name.includes('Google') || v.name.includes('Natural')))
-      || this.voices.find(v => v.lang.replace('_', '-').startsWith(lang))
-      || null;
-    return voice;
+    const target = (lang || 'en-US').toLowerCase();
+    const short = target.split('-')[0];
+
+    // 1. 完全一致 + Natural/Google/Premium
+    let voice = this.voices.find(v => {
+      const vLang = (v.lang || '').replace('_', '-').toLowerCase();
+      return vLang === target && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Premium'));
+    });
+    // 2. 完全一致
+    if (!voice) {
+      voice = this.voices.find(v => (v.lang || '').replace('_', '-').toLowerCase() === target);
+    }
+    // 3. 前方一致 (例: es, zh, ko, fr, it, de)
+    if (!voice) {
+      voice = this.voices.find(v => (v.lang || '').replace('_', '-').toLowerCase().startsWith(short));
+    }
+    return voice || null;
   },
 
   /**

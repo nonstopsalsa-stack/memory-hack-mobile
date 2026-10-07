@@ -10,15 +10,21 @@
  */
 
 const StudyManager = {
-  version: '1.6.1-kanji-fix',
+  version: 'v2.0.0',
   cards: [],
   queue: [],
   currentIndex: 0,
   currentCard: null,
-  currentPattern: 'en_to_ja',
+  currentPattern: 'front_to_back',
   currentKanjiQuestion: null,
   isFlipped: false,
   showAdvice: false,
+
+  // 汎用フラッシュカード用2大出題パターン定義
+  UNIVERSAL_PATTERNS: {
+    front_to_back: { name: '表 ➔ 裏', desc: '表面 (問題・用語) ➔ 裏面 (解答)', badgeClass: 'badge-en-ja', hint: '基本出題' },
+    back_to_front: { name: '裏 ➔ 表', desc: '裏面 (解答) ➔ 表面 (問題想起)', badgeClass: 'badge-ja-en', hint: '逆引き想起' }
+  },
 
   // 漢字専用6大出題パターン定義
   KANJI_PATTERNS: {
@@ -30,7 +36,7 @@ const StudyManager = {
     sentence_read: { name: '文 ➔ 読', desc: '例文傍線（対象語句を強調） ➔ 読みを答える', badgeClass: 'badge-en-audio', hint: '例文の読み' }
   },
 
-  // 英語専用6大出題パターン定義
+  // 英語専用6大出題パターン定義 (後方互換)
   EN_PATTERNS: {
     en_to_ja: { name: '英 ➔ 日', desc: '英語 ➔ 日本語 (意味想起)', badgeClass: 'badge-en-ja', hint: '意味想起' },
     ja_to_en: { name: '日 ➔ 英', desc: '日本語 ➔ 英語 (瞬間英作文)', badgeClass: 'badge-ja-en', hint: '瞬間英作文' },
@@ -40,13 +46,115 @@ const StudyManager = {
     en_to_audio: { name: '英 ➔ 音', desc: '英語 ➔ 音声 (フォニックス)', badgeClass: 'badge-en-audio', hint: 'フォニックス' }
   },
 
+  /**
+   * カードの対象言語コードを自動判定
+   */
+  getCardLanguage(card) {
+    if (!card) return 'en-US';
+    if (card.targetLanguage) return card.targetLanguage;
+    const cat = `${card.category1 || ''} ${card.category2 || ''} ${card.category3 || ''} ${card.deck || ''}`.toLowerCase();
+    if (cat.includes('スペイン') || cat.includes('spanish')) return 'es-ES';
+    if (cat.includes('広東') || cat.includes('cantonese')) return 'zh-HK';
+    if (cat.includes('台湾') || cat.includes('taiwan')) return 'zh-TW';
+    if (cat.includes('中国') || cat.includes('chinese')) return 'zh-CN';
+    if (cat.includes('韓国') || cat.includes('korean')) return 'ko-KR';
+    if (cat.includes('フランス') || cat.includes('french')) return 'fr-FR';
+    if (cat.includes('イタリア') || cat.includes('italian')) return 'it-IT';
+    if (cat.includes('ドイツ') || cat.includes('german')) return 'de-DE';
+    if (cat.includes('イギリス') || cat.includes('british')) return 'en-GB';
+    return 'en-US';
+  },
+
+  /**
+   * 対象言語に応じた6大出題パターン定義の動的生成
+   */
+  getLanguagePatterns(targetLang = 'en-US') {
+    const registry = window.SUPPORTED_LANGUAGES || {};
+    const meta = registry[targetLang] || { name: '英語', short: '英', flag: '🇺🇸' };
+    const short = meta.short;
+    const name = meta.name;
+    return {
+      en_to_ja: { name: `${short} ➔ 日`, desc: `${name} ➔ 日本語 (意味想起)`, badgeClass: 'badge-en-ja', hint: '意味想起' },
+      ja_to_en: { name: `日 ➔ ${short}`, desc: `日本語 ➔ ${name} (瞬間作文)`, badgeClass: 'badge-ja-en', hint: '瞬間作文' },
+      audio_to_ja: { name: '音 ➔ 日', desc: `音声 ➔ 日本語 (リスニング)`, badgeClass: 'badge-audio-ja', hint: 'リスニング' },
+      audio_to_en: { name: `音 ➔ ${short}`, desc: `音声 ➔ ${name} (ディクテーション)`, badgeClass: 'badge-audio-en', hint: 'ディクテーション' },
+      ja_to_audio: { name: '日 ➔ 音', desc: `日本語 ➔ 音声 (発音想起)`, badgeClass: 'badge-ja-audio', hint: '発音想起' },
+      en_to_audio: { name: `${short} ➔ 音`, desc: `${name} ➔ 音声 (発音練習)`, badgeClass: 'badge-en-audio', hint: '発音練習' }
+    };
+  },
+
   // 学習フィルター & モード
   selectedFilter: { level1: 'all', level2: 'all', level3: 'all' },
   filterMode: 'all_random', // 'due' | 'all_random' | 'weak' | 'mistakes_today' | 'sequence'
   itemTypeFilter: 'all',     // 'all' | 'word' | 'sentence'
-  activePatterns: ['en_to_ja', 'ja_to_en', 'audio_to_ja', 'audio_to_en', 'ja_to_audio', 'en_to_audio'],
+  activePatterns: ['front_to_back', 'back_to_front'],
   activePatternsKanji: ['char_to_read', 'read_to_char', 'word_to_read', 'read_to_word', 'sentence_fill', 'sentence_read'],
   autoPlayAudio: true,
+
+  /**
+   * 文字数に応じた動的フォントスケールクラスを算出
+   */
+  getFontScaleClass(text) {
+    if (!text) return 'text-hero';
+    const len = String(text).trim().length;
+    if (len <= 15) return 'text-hero';
+    if (len <= 45) return 'text-large';
+    if (len <= 120) return 'text-medium';
+    return 'text-content';
+  },
+
+  /**
+   * 汎用パターンのサニタイズ
+   */
+  sanitizeUniversalPatterns(patterns) {
+    const validKeys = Object.keys(this.UNIVERSAL_PATTERNS || {});
+    if (!Array.isArray(patterns) || patterns.length === 0) {
+      return [...validKeys];
+    }
+    const filtered = patterns.filter(k => validKeys.includes(k));
+    return filtered.length > 0 ? filtered : [...validKeys];
+  },
+
+  /**
+   * 画像表示HTML生成
+   */
+  renderImageHtml(src, className = 'card-display-img') {
+    if (!src) return '';
+    return `
+      <div class="card-image-display-box" onclick="StudyManager.openLightbox('${src}'); event.stopPropagation();" title="タップして拡大">
+        <img class="${className}" src="${src}" alt="添付画像" />
+        <span class="card-image-zoom-hint">🔍 タップで拡大</span>
+      </div>
+    `;
+  },
+
+  /**
+   * ライトボックス表示
+   */
+  openLightbox(src) {
+    if (!src) return;
+    const modal = document.getElementById('image-lightbox-modal');
+    const imgEl = document.getElementById('lightbox-img-el') || document.getElementById('lightbox-img');
+    if (modal && imgEl) {
+      imgEl.src = src;
+      modal.classList.remove('hidden');
+    }
+  },
+
+  /**
+   * ライトボックス閉じる
+   */
+  closeLightbox() {
+    const modal = document.getElementById('image-lightbox-modal');
+    const imgEl = document.getElementById('lightbox-img-el') || document.getElementById('lightbox-img');
+    if (modal) {
+      modal.classList.add('hidden');
+      if (imgEl) {
+        imgEl.src = '';
+        imgEl.removeAttribute('src');
+      }
+    }
+  },
 
   /**
    * 現在のカードが漢字カードか判定
@@ -433,9 +541,11 @@ const StudyManager = {
     this.cards = await Storage.getAllCards();
 
     // 1. 設定の復元
-    const savedPatterns = await Storage.getSetting('study_active_patterns', null);
-    if (savedPatterns && Array.isArray(savedPatterns) && savedPatterns.length > 0) {
-      this.activePatterns = savedPatterns;
+    const savedUniversalPatterns = await Storage.getSetting('study_active_patterns_universal', null);
+    if (savedUniversalPatterns && Array.isArray(savedUniversalPatterns) && savedUniversalPatterns.length > 0) {
+      this.activePatterns = this.sanitizeUniversalPatterns(savedUniversalPatterns);
+    } else {
+      this.activePatterns = ['front_to_back', 'back_to_front'];
     }
     const savedKanjiPatterns = await Storage.getSetting('study_active_patterns_kanji', null);
     this.activePatternsKanji = this.sanitizeKanjiPatterns(savedKanjiPatterns);
@@ -514,21 +624,23 @@ const StudyManager = {
    */
   renderPatternSelector() {
     this.activePatternsKanji = this.sanitizeKanjiPatterns(this.activePatternsKanji);
+    this.activePatterns = this.sanitizeUniversalPatterns(this.activePatterns);
     const isKanji = this.isCurrentSessionKanji();
     const activeList = isKanji ? this.activePatternsKanji : this.activePatterns;
+    const totalCount = isKanji ? 6 : 2;
     const btn = document.getElementById('pattern-btn-count');
     if (btn) {
-      btn.innerText = `${activeList.length}/6`;
+      btn.innerText = `${activeList.length}/${totalCount}`;
     }
 
     const modalTitle = document.querySelector('#modal-patterns .modal-title');
     if (modalTitle) {
-      modalTitle.innerText = isKanji ? '🎯 漢字 6大出題パターン' : '🎯 出題パターンの選択 (全6種)';
+      modalTitle.innerText = isKanji ? '🎯 漢字 6大出題パターン' : '🎯 出題パターンの選択 (全2種)';
     }
 
     const patternGrid = document.querySelector('#modal-patterns .pattern-grid');
     if (patternGrid) {
-      const patternDict = isKanji ? this.KANJI_PATTERNS : this.EN_PATTERNS;
+      const patternDict = isKanji ? this.KANJI_PATTERNS : this.UNIVERSAL_PATTERNS;
       const set = new Set(activeList);
       let html = '';
       for (const [key, p] of Object.entries(patternDict)) {
@@ -544,7 +656,7 @@ const StudyManager = {
 
     const deselectBtn = document.getElementById('btn-pattern-deselect-all');
     if (deselectBtn) {
-      deselectBtn.innerText = isKanji ? '全解除 (字➔読のみ)' : '全解除 (英➔日のみ)';
+      deselectBtn.innerText = isKanji ? '全解除 (字➔読のみ)' : '全解除 (表➔裏のみ)';
     }
   },
 
@@ -760,7 +872,7 @@ const StudyManager = {
 
   pickCurrentPattern() {
     if (!this.currentCard) {
-      this.currentPattern = 'en_to_ja';
+      this.currentPattern = 'front_to_back';
       this.currentKanjiQuestion = null;
       return;
     }
@@ -773,10 +885,10 @@ const StudyManager = {
       this.currentPattern = this.currentKanjiQuestion.pattern;
     } else {
       const patterns = (this.activePatterns && this.activePatterns.length > 0)
-        ? this.activePatterns
-        : ['en_to_ja'];
+        ? this.sanitizeUniversalPatterns(this.activePatterns)
+        : ['front_to_back'];
       const idx = Math.floor(Math.random() * patterns.length);
-      this.currentPattern = patterns[idx];
+      this.currentPattern = patterns[idx] || 'front_to_back';
       this.currentKanjiQuestion = null;
     }
   },
@@ -901,20 +1013,22 @@ const StudyManager = {
   },
 
   /**
-   * 音声再生
+   * 音声再生 (プロジェクト・カード言語に自動適応)
    */
   playCardAudio() {
     if (!this.currentCard) return;
     const textToSpeak = this.currentCard.front || '';
-    AudioManager.speak(textToSpeak);
+    const lang = this.getCardLanguage(this.currentCard);
+    AudioManager.speak(textToSpeak, { lang });
   },
 
   /**
-   * 例文の音声再生
+   * 例文の音声再生 (プロジェクト・カード言語に自動適応)
    */
   playExampleAudio() {
     if (!this.currentCard || !this.currentCard.example) return;
-    AudioManager.speak(this.currentCard.example);
+    const lang = this.getCardLanguage(this.currentCard);
+    AudioManager.speak(this.currentCard.example, { lang });
   },
 
   /**
@@ -977,49 +1091,149 @@ const StudyManager = {
               <div class="audio-prompt-text">タップして発音を聞く</div>
             </div>
           `;
+        } else if (pattern === 'back_to_front') {
+          // 逆引き出題: 答えを見て問題を想起
+          const text = card.back || '';
+          const fontClass = this.getFontScaleClass(text);
+          const imgHtml = this.renderImageHtml(card.backImage);
+          questionHtml = `
+            <div class="card-prompt-container" style="text-align: center; padding: 12px 4px;">
+              <div class="card-prompt-text ${fontClass}" style="margin: 10px 0;">${escapeHtml(text)}</div>
+              ${imgHtml}
+              <div class="card-target-guide guide-universal">
+                ❓ 問題 (表) を想起
+              </div>
+            </div>
+          `;
         } else if (pattern === 'ja_to_en' || pattern === 'ja_to_audio') {
-          questionHtml = `<div class="card-prompt-text ja">${escapeHtml(card.back)}</div>`;
+          const text = card.back || '';
+          const fontClass = this.getFontScaleClass(text);
+          const imgHtml = this.renderImageHtml(card.backImage);
+          questionHtml = `
+            <div class="card-prompt-container" style="text-align: center; padding: 12px 4px;">
+              <div class="card-prompt-text ja ${fontClass}">${escapeHtml(text)}</div>
+              ${imgHtml}
+            </div>
+          `;
         } else {
-          questionHtml = `<div class="card-prompt-text en">${escapeHtml(card.front)}</div>`;
+          // 基本出題: 表 ➔ 裏 (問題・用語・算数文章題)
+          const text = card.front || '';
+          const fontClass = this.getFontScaleClass(text);
+          const imgHtml = this.renderImageHtml(card.frontImage);
+          const hasVoice = (card.voiceType && card.voiceType !== 'none') || pattern === 'en_to_ja';
+          questionHtml = `
+            <div class="card-prompt-container" style="text-align: center; padding: 12px 4px;">
+              <div class="card-prompt-text ${fontClass}" style="margin: 10px 0;">
+                <span>${escapeHtml(text)}</span>
+                ${hasVoice ? `<button class="speaker-btn" style="margin-left: 8px; vertical-align: middle;" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く">🔊</button>` : ''}
+              </div>
+              ${imgHtml}
+              <div class="card-target-guide guide-universal">
+                🎯 解答 (裏) を想起
+              </div>
+            </div>
+          `;
         }
       } else {
         // ===== 裏面（解答） =====
-        answerHtml = `
-          <div class="card-answer-block">
-            <div class="card-answer-row">
-              <div class="card-answer-main ${pattern === 'ja_to_en' ? 'en' : 'ja'}">
-                ${escapeHtml(pattern === 'ja_to_en' ? card.front : card.back)}
+        if (pattern === 'back_to_front') {
+          // 逆引き出題の解答: 表面テキスト
+          const ansText = card.front || '';
+          const fontClass = this.getFontScaleClass(ansText);
+          const imgHtml = this.renderImageHtml(card.frontImage);
+          const hasVoice = (card.voiceType && card.voiceType !== 'none');
+          answerHtml = `
+            <div class="card-answer-block" style="text-align: center; padding: 10px 4px;">
+              <div class="card-answer-badge" style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">🎯 解答 (問題)</div>
+              <div class="card-answer-main ${fontClass}">
+                <span>${escapeHtml(ansText)}</span>
+                ${hasVoice ? `<button class="speaker-btn" style="margin-left: 8px; vertical-align: middle;" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く">🔊</button>` : ''}
               </div>
-              <button class="speaker-btn" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く">
-                🔊
-              </button>
+              ${imgHtml}
             </div>
-            <div class="card-answer-sub">
-              ${escapeHtml(pattern === 'ja_to_en' ? card.back : card.front)}
-            </div>
-          </div>
-
-          ${card.example ? `
-            <div class="example-box">
-              <div class="example-header">
-                <span class="example-badge">例文</span>
-                <button class="example-speaker-btn" onclick="StudyManager.playExampleAudio(); event.stopPropagation();">🔊</button>
+            ${card.advice ? `
+              <div class="advice-accordion expanded" style="margin-top: 12px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 14px; text-align: left;">
+                <div class="advice-header" style="font-size: 0.9rem; font-weight: bold; color: #f59e0b; margin-bottom: 4px;">💡 解説・補足メモ</div>
+                <div class="advice-body" style="font-size: 0.85rem; line-height: 1.5; color: #e2e8f0; white-space: pre-wrap;">${escapeHtml(card.advice)}</div>
               </div>
-              <div class="example-en">${escapeHtml(card.example)}</div>
-              ${card.exampleTranslation ? `<div class="example-ja">${escapeHtml(card.exampleTranslation)}</div>` : ''}
-            </div>
-          ` : ''}
-
-          ${card.advice ? `
-            <div class="advice-accordion expanded">
-              <div class="advice-header">
-                <span class="advice-title">💡 攻略アドバイス・AI解説</span>
-                <span class="advice-arrow">▲</span>
+            ` : ''}
+          `;
+        } else if (pattern === 'ja_to_en') {
+          const ansText = card.front || '';
+          const fontClass = this.getFontScaleClass(ansText);
+          const imgHtml = this.renderImageHtml(card.frontImage);
+          answerHtml = `
+            <div class="card-answer-block">
+              <div class="card-answer-row">
+                <div class="card-answer-main en ${fontClass}">
+                  ${escapeHtml(ansText)}
+                </div>
+                <button class="speaker-btn" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く">
+                  🔊
+                </button>
               </div>
-              <div class="advice-body">${escapeHtml(card.advice)}</div>
+              <div class="card-answer-sub">
+                ${escapeHtml(card.back)}
+              </div>
+              ${imgHtml}
             </div>
-          ` : ''}
-        `;
+            ${card.example ? `
+              <div class="example-box">
+                <div class="example-header">
+                  <span class="example-badge">例文</span>
+                  <button class="example-speaker-btn" onclick="StudyManager.playExampleAudio(); event.stopPropagation();">🔊</button>
+                </div>
+                <div class="example-en">${escapeHtml(card.example)}</div>
+                ${card.exampleTranslation ? `<div class="example-ja">${escapeHtml(card.exampleTranslation)}</div>` : ''}
+              </div>
+            ` : ''}
+            ${card.advice ? `
+              <div class="advice-accordion expanded">
+                <div class="advice-header">
+                  <span class="advice-title">💡 解説・補足メモ</span>
+                  <span class="advice-arrow">▲</span>
+                </div>
+                <div class="advice-body">${escapeHtml(card.advice)}</div>
+              </div>
+            ` : ''}
+          `;
+        } else {
+          // 基本: 表 ➔ 裏 (解答は back)
+          const ansText = card.back || '';
+          const fontClass = this.getFontScaleClass(ansText);
+          const imgHtml = this.renderImageHtml(card.backImage);
+          const hasVoice = (card.voiceType && card.voiceType !== 'none') || pattern === 'en_to_ja';
+          answerHtml = `
+            <div class="card-answer-block" style="text-align: center; padding: 10px 4px;">
+              <div class="card-answer-badge" style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">🎯 解答</div>
+              <div class="card-answer-main ${fontClass}">
+                ${escapeHtml(ansText)}
+              </div>
+              ${hasVoice ? `
+                <div style="margin-top: 6px;">
+                  <button class="speaker-btn" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く">🔊 発音を聞く</button>
+                </div>
+              ` : ''}
+              ${imgHtml}
+            </div>
+            ${card.example ? `
+              <div class="example-box">
+                <div class="example-header">
+                  <span class="example-badge">例文</span>
+                  <button class="example-speaker-btn" onclick="StudyManager.playExampleAudio(); event.stopPropagation();">🔊</button>
+                </div>
+                <div class="example-en">${escapeHtml(card.example)}</div>
+                ${card.exampleTranslation ? `<div class="example-ja">${escapeHtml(card.exampleTranslation)}</div>` : ''}
+              </div>
+            ` : ''}
+            ${card.advice ? `
+              <div class="advice-accordion expanded" style="margin-top: 12px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 14px; text-align: left;">
+                <div class="advice-header" style="font-size: 0.9rem; font-weight: bold; color: #f59e0b; margin-bottom: 4px;">💡 解説・補足メモ</div>
+                <div class="advice-body" style="font-size: 0.85rem; line-height: 1.5; color: #e2e8f0; white-space: pre-wrap;">${escapeHtml(card.advice)}</div>
+              </div>
+            ` : ''}
+          `;
+        }
       }
     }
 
@@ -1107,7 +1321,15 @@ const StudyManager = {
   },
 
   getPatternInfo(pattern) {
+    const cardLang = this.getCardLanguage(this.currentCard);
+    const langMeta = (window.SUPPORTED_LANGUAGES && window.SUPPORTED_LANGUAGES[cardLang]) || { name: '英語', short: '英' };
+    const langName = langMeta.name;
+
     switch (pattern) {
+      case 'front_to_back':
+        return { badgeText: '🎯 QUEST: 答えを想起せよ！', badgeClass: 'badge-en-ja' };
+      case 'back_to_front':
+        return { badgeText: '❓ QUEST: 問題を想起せよ！', badgeClass: 'badge-ja-en' };
       case 'char_to_read':
         return { badgeText: '⚔️ QUEST: 漢字の読み・意味を想起せよ！', badgeClass: 'badge-en-ja' };
       case 'read_to_char':
@@ -1123,13 +1345,13 @@ const StudyManager = {
       case 'en_to_ja':
         return { badgeText: '⚔️ QUEST: 日本語の意味を言え！', badgeClass: 'badge-en-ja' };
       case 'ja_to_en':
-        return { badgeText: '🛡️ QUEST: 英語で発音・英訳せよ！', badgeClass: 'badge-ja-en' };
+        return { badgeText: `🛡️ QUEST: ${langName}で発音・作文せよ！`, badgeClass: 'badge-ja-en' };
       case 'audio_to_ja':
         return { badgeText: '🎧 QUEST: 音声を聞いて意味を答えよ！', badgeClass: 'badge-audio-ja' };
       case 'audio_to_en':
-        return { badgeText: '✍️ QUEST: 音声を聞いて英語を答えよ！', badgeClass: 'badge-audio-en' };
+        return { badgeText: `✍️ QUEST: 音声を聞いて${langName}を答えよ！`, badgeClass: 'badge-audio-en' };
       case 'ja_to_audio':
-        return { badgeText: '🗣️ QUEST: 日本語から英語を発音せよ！', badgeClass: 'badge-ja-audio' };
+        return { badgeText: `🗣️ QUEST: 日本語から${langName}を発音せよ！`, badgeClass: 'badge-ja-audio' };
       case 'en_to_audio':
         return { badgeText: '🔊 QUEST: 正しい発音をチェックせよ！', badgeClass: 'badge-en-audio' };
       default:

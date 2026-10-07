@@ -22,7 +22,7 @@
   <meta http-equiv="Expires" content="0">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="css/mobile.css?v=1.6.1-kanji-fix">
+  <link rel="stylesheet" href="css/mobile.css?v=2.0.0">
 </head>
 <body>
 
@@ -48,7 +48,7 @@
           </svg>
         </span>
         <span class="brand-title">MEMORY HACK</span>
-        <span class="brand-ver-badge">v1.6.0-kanji</span>
+        <span class="brand-ver-badge">v2.0.0</span>
       </div>
 
       <div class="top-actions">
@@ -89,10 +89,10 @@
         </div>
       </div>
 
-      <!-- 行2: 単語/文章 ＆ 出題パターン ＆ 進捗 -->
+      <!-- 行2: 出題パターン ＆ 進捗 (単語/文章セレクターは汎用化に伴い非表示) -->
       <div class="strip-row-2">
-        <!-- 単語/文章フィルター -->
-        <div class="type-filter-group">
+        <!-- 単語/文章フィルター (非表示) -->
+        <div class="type-filter-group hidden">
           <button class="type-filter-btn active" data-type="all">すべて</button>
           <button class="type-filter-btn" data-type="word">単語</button>
           <button class="type-filter-btn" data-type="sentence">文章</button>
@@ -203,7 +203,7 @@
       <div class="modal-header">
         <div class="modal-title-wrap">
           <h3 class="modal-title">⚙️ 設定</h3>
-          <span class="modal-subtitle">MEMORY HACK Mobile v1.6.0-kanji</span>
+          <span class="modal-subtitle">MEMORY HACK Mobile v2.0.0</span>
         </div>
         <button class="modal-close-btn" onclick="App.closeModal('modal-settings')">✕</button>
       </div>
@@ -269,14 +269,22 @@
   <!-- Toast Notification -->
   <div id="app-toast" class="toast"></div>
 
-  <!-- Scripts (Cache-busted with ?v=1.6.1-kanji-fix) -->
-  <script src="js/config.js?v=1.6.1-kanji-fix"></script>
-  <script src="js/storage.js?v=1.6.1-kanji-fix"></script>
-  <script src="js/srs.js?v=1.6.1-kanji-fix"></script>
-  <script src="js/hierarchy.js?v=1.6.1-kanji-fix"></script>
-  <script src="js/audio.js?v=1.6.1-kanji-fix"></script>
-  <script src="js/sync.js?v=1.6.1-kanji-fix"></script>
-  <script src="js/study.js?v=1.6.1-kanji-fix"></script>
-  <script src="js/app.js?v=1.6.1-kanji-fix"></script>
+  <!-- Lightbox Modal for Universal Flashcard Image Zoom -->
+  <div id="image-lightbox-modal" class="image-lightbox-modal hidden" onclick="StudyManager.closeLightbox()">
+    <div class="lightbox-content-wrap" onclick="event.stopPropagation()">
+      <button class="lightbox-close-btn" onclick="StudyManager.closeLightbox()" title="閉じる">✕</button>
+      <img id="lightbox-img-el" class="lightbox-img" src="" alt="拡大画像">
+    </div>
+  </div>
+
+  <!-- Scripts (Cache-busted with ?v=2.0.0) -->
+  <script src="js/config.js?v=2.0.0"></script>
+  <script src="js/storage.js?v=2.0.0"></script>
+  <script src="js/srs.js?v=2.0.0"></script>
+  <script src="js/hierarchy.js?v=2.0.0"></script>
+  <script src="js/audio.js?v=2.0.0"></script>
+  <script src="js/sync.js?v=2.0.0"></script>
+  <script src="js/study.js?v=2.0.0"></script>
+  <script src="js/app.js?v=2.0.0"></script>
 </body>
 </html>
