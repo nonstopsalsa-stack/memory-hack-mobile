@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -22,7 +22,7 @@
   <meta http-equiv="Expires" content="0">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="css/mobile.css?v=1.6.0-kanji">
+  <link rel="stylesheet" href="css/mobile.css?v=1.6.1-kanji-fix">
 </head>
 <body>
 
@@ -189,7 +189,7 @@
 
       <div class="modal-actions-bar">
         <button class="btn-modal-action" onclick="App.toggleAllPatterns(true)">すべて選択</button>
-        <button class="btn-modal-action" onclick="App.toggleAllPatterns(false)">全解除 (英➔日のみ)</button>
+        <button class="btn-modal-action" id="btn-pattern-deselect-all" onclick="App.toggleAllPatterns(false)">全解除 (英➔日のみ)</button>
         <button class="btn-modal-action primary" onclick="App.closeModal('modal-patterns')">決定</button>
       </div>
     </div>
@@ -269,14 +269,14 @@
   <!-- Toast Notification -->
   <div id="app-toast" class="toast"></div>
 
-  <!-- Scripts (Cache-busted with ?v=1.6.0-kanji) -->
-  <script src="js/config.js?v=1.6.0-kanji"></script>
-  <script src="js/storage.js?v=1.6.0-kanji"></script>
-  <script src="js/srs.js?v=1.6.0-kanji"></script>
-  <script src="js/hierarchy.js?v=1.6.0-kanji"></script>
-  <script src="js/audio.js?v=1.6.0-kanji"></script>
-  <script src="js/sync.js?v=1.6.0-kanji"></script>
-  <script src="js/study.js?v=1.6.0-kanji"></script>
-  <script src="js/app.js?v=1.6.0-kanji"></script>
+  <!-- Scripts (Cache-busted with ?v=1.6.1-kanji-fix) -->
+  <script src="js/config.js?v=1.6.1-kanji-fix"></script>
+  <script src="js/storage.js?v=1.6.1-kanji-fix"></script>
+  <script src="js/srs.js?v=1.6.1-kanji-fix"></script>
+  <script src="js/hierarchy.js?v=1.6.1-kanji-fix"></script>
+  <script src="js/audio.js?v=1.6.1-kanji-fix"></script>
+  <script src="js/sync.js?v=1.6.1-kanji-fix"></script>
+  <script src="js/study.js?v=1.6.1-kanji-fix"></script>
+  <script src="js/app.js?v=1.6.1-kanji-fix"></script>
 </body>
 </html>

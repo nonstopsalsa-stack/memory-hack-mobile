@@ -10,7 +10,7 @@
  */
 
 const StudyManager = {
-  version: '1.6.0-kanji',
+  version: '1.6.1-kanji-fix',
   cards: [],
   queue: [],
   currentIndex: 0,
@@ -72,6 +72,18 @@ const StudyManager = {
     const filter = this.selectedFilter || {};
     const filterStr = `${filter.level1 || ''} ${filter.level2 || ''} ${filter.level3 || ''}`;
     return filterStr.includes('漢字') || filterStr.includes('漢検');
+  },
+
+  /**
+   * 漢字出題パターンのサニタイズ（無効キー・英語キーの混入を完全防除）
+   */
+  sanitizeKanjiPatterns(patterns) {
+    const validKeys = Object.keys(this.KANJI_PATTERNS || {});
+    if (!Array.isArray(patterns) || patterns.length === 0) {
+      return validKeys.length > 0 ? [...validKeys] : ['char_to_read'];
+    }
+    const filtered = patterns.filter(k => validKeys.includes(k));
+    return filtered.length > 0 ? filtered : (validKeys.length > 0 ? [...validKeys] : ['char_to_read']);
   },
 
   /**
@@ -206,6 +218,9 @@ const StudyManager = {
     const sentData = this.parseKanjiSentence(card);
 
     let pattern = requestedPattern || 'char_to_read';
+    if (!this.KANJI_PATTERNS || !this.KANJI_PATTERNS[pattern]) {
+      pattern = 'char_to_read';
+    }
 
     // 守り: 安全フォールバック
     if ((pattern === 'word_to_read' || pattern === 'read_to_word') && compounds.length === 0) {
@@ -375,6 +390,18 @@ const StudyManager = {
         `;
         break;
       }
+      default: {
+        q.targetWord = card.front;
+        q.displayPrompt = `<span class="target-kanji-huge" style="font-size: 4rem; font-weight: 800; color: #f8fafc;">${escapeHtml(card.front)}</span>`;
+        q.guideText = '🇯🇵 読み・意味を想起';
+        q.answerMain = `
+          <div style="font-size: 1.5rem; font-weight: bold; color: #38bdf8; margin-bottom: 6px;">
+            ${escapeHtml(readings.allReadings.map(r => `${r.label}: ${r.reading}`).join('　') || card.back)}
+          </div>
+        `;
+        q.answerSub = q.fullReadingsHtml;
+        break;
+      }
     }
 
     return q;
@@ -411,9 +438,7 @@ const StudyManager = {
       this.activePatterns = savedPatterns;
     }
     const savedKanjiPatterns = await Storage.getSetting('study_active_patterns_kanji', null);
-    if (savedKanjiPatterns && Array.isArray(savedKanjiPatterns) && savedKanjiPatterns.length > 0) {
-      this.activePatternsKanji = savedKanjiPatterns;
-    }
+    this.activePatternsKanji = this.sanitizeKanjiPatterns(savedKanjiPatterns);
 
     this.selectedFilter = await Storage.getFilterState();
     this.filterMode = await Storage.getSetting('study_filter_mode', 'all_random');
@@ -488,6 +513,7 @@ const StudyManager = {
    * 出題パターン設定ボタン・モーダルの表示更新（漢字/英語動的切り替え）
    */
   renderPatternSelector() {
+    this.activePatternsKanji = this.sanitizeKanjiPatterns(this.activePatternsKanji);
     const isKanji = this.isCurrentSessionKanji();
     const activeList = isKanji ? this.activePatternsKanji : this.activePatterns;
     const btn = document.getElementById('pattern-btn-count');
@@ -514,6 +540,11 @@ const StudyManager = {
         `;
       }
       patternGrid.innerHTML = html;
+    }
+
+    const deselectBtn = document.getElementById('btn-pattern-deselect-all');
+    if (deselectBtn) {
+      deselectBtn.innerText = isKanji ? '全解除 (字➔読のみ)' : '全解除 (英➔日のみ)';
     }
   },
 
@@ -735,9 +766,7 @@ const StudyManager = {
     }
     const isKanji = this.isKanjiCard(this.currentCard);
     if (isKanji) {
-      const patterns = (this.activePatternsKanji && this.activePatternsKanji.length > 0)
-        ? this.activePatternsKanji
-        : ['char_to_read'];
+      const patterns = this.sanitizeKanjiPatterns(this.activePatternsKanji);
       const idx = Math.floor(Math.random() * patterns.length);
       const rawPattern = patterns[idx];
       this.currentKanjiQuestion = this.pickKanjiQuestion(this.currentCard, rawPattern);
@@ -894,6 +923,8 @@ const StudyManager = {
   renderCard() {
     const container = document.getElementById('card-stage');
     if (!container || !this.currentCard) return;
+
+    this.renderPatternSelector();
 
     const card = this.currentCard;
     const pattern = this.currentPattern;

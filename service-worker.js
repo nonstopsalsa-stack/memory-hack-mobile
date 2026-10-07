@@ -2,20 +2,20 @@
  * service-worker.js - MEMORY HACK Mobile PWA オフラインキャッシュ
  */
 
-const CACHE_NAME = 'memory-hack-mobile-v1.6.0-kanji';
+const CACHE_NAME = 'memory-hack-mobile-v1.6.1-kanji-fix';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
-  './css/mobile.css?v=1.6.0-kanji',
-  './js/config.js?v=1.6.0-kanji',
-  './js/storage.js?v=1.6.0-kanji',
-  './js/srs.js?v=1.6.0-kanji',
-  './js/hierarchy.js?v=1.6.0-kanji',
-  './js/audio.js?v=1.6.0-kanji',
-  './js/sync.js?v=1.6.0-kanji',
-  './js/study.js?v=1.6.0-kanji',
-  './js/app.js?v=1.6.0-kanji',
+  './css/mobile.css?v=1.6.1-kanji-fix',
+  './js/config.js?v=1.6.1-kanji-fix',
+  './js/storage.js?v=1.6.1-kanji-fix',
+  './js/srs.js?v=1.6.1-kanji-fix',
+  './js/hierarchy.js?v=1.6.1-kanji-fix',
+  './js/audio.js?v=1.6.1-kanji-fix',
+  './js/sync.js?v=1.6.1-kanji-fix',
+  './js/study.js?v=1.6.1-kanji-fix',
+  './js/app.js?v=1.6.1-kanji-fix',
   './assets/icon-192.png',
   './assets/icon-512.png',
   './assets/icon.png',

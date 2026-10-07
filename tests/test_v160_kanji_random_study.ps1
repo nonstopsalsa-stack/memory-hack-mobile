@@ -30,16 +30,17 @@ $sw = [System.IO.File]::ReadAllText($swPath, [System.Text.Encoding]::UTF8)
 $html = [System.IO.File]::ReadAllText($htmlPath, [System.Text.Encoding]::UTF8)
 
 # 1. バージョン整合性
-Assert-Check "1.1 study.js version is 1.6.0-kanji" ($study.Contains("version: '1.6.0-kanji'"))
-Assert-Check "1.2 service-worker.js CACHE_NAME is memory-hack-mobile-v1.6.0-kanji" ($sw.Contains("memory-hack-mobile-v1.6.0-kanji"))
-Assert-Check "1.3 service-worker.js ASSETS_TO_CACHE has v1.6.0-kanji queries" ($sw.Contains("?v=1.6.0-kanji"))
-Assert-Check "1.4 index.html has v1.6.0-kanji query strings" ($html.Contains("?v=1.6.0-kanji"))
+Assert-Check "1.1 study.js version is 1.6.1-kanji-fix" ($study.Contains("version: '1.6.1-kanji-fix'"))
+Assert-Check "1.2 service-worker.js CACHE_NAME is memory-hack-mobile-v1.6.1-kanji-fix" ($sw.Contains("memory-hack-mobile-v1.6.1-kanji-fix"))
+Assert-Check "1.3 service-worker.js ASSETS_TO_CACHE has v1.6.1-kanji-fix queries" ($sw.Contains("?v=1.6.1-kanji-fix"))
+Assert-Check "1.4 index.html has v1.6.1-kanji-fix query strings" ($html.Contains("?v=1.6.1-kanji-fix"))
 
 # 2. 漢字パターン定義と状態
 Assert-Check "2.1 study.js defines KANJI_PATTERNS" ($study.Contains("KANJI_PATTERNS:") -and $study.Contains("char_to_read") -and $study.Contains("sentence_fill"))
 Assert-Check "2.2 study.js defines activePatternsKanji default" ($study.Contains("activePatternsKanji:"))
 Assert-Check "2.3 study.js has isKanjiCard method" ($study.Contains("isKanjiCard(card)"))
 Assert-Check "2.4 study.js has isCurrentSessionKanji method" ($study.Contains("isCurrentSessionKanji()"))
+Assert-Check "2.5 study.js has sanitizeKanjiPatterns method" ($study.Contains("sanitizeKanjiPatterns(patterns)"))
 
 # 3. パーサー & ピッカー
 Assert-Check "3.1 study.js has parseKanjiReadings method" ($study.Contains("parseKanjiReadings(card)"))

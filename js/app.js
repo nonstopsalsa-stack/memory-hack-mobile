@@ -112,6 +112,9 @@ const App = {
 
   // モーダル操作
   openModal(id) {
+    if (id === 'modal-patterns' && typeof StudyManager !== 'undefined') {
+      StudyManager.renderPatternSelector();
+    }
     const modal = document.getElementById(id);
     if (modal) {
       modal.classList.remove('hidden');
@@ -131,21 +134,26 @@ const App = {
   async onPatternChange() {
     const isKanji = StudyManager.isCurrentSessionKanji();
     const defaultPattern = isKanji ? 'char_to_read' : 'en_to_ja';
-    const checked = Array.from(document.querySelectorAll('input[name="pattern_checkbox"]:checked')).map(c => c.value);
-    if (checked.length === 0) {
-      const def = document.querySelector(`input[name="pattern_checkbox"][value="${defaultPattern}"]`);
-      if (def) def.checked = true;
-      this.showToast('⚠️ 最低1つの出題パターンを選択してください', 'warn');
-      return;
-    }
+    let checked = Array.from(document.querySelectorAll('input[name="pattern_checkbox"]:checked')).map(c => c.value);
+
     if (isKanji) {
+      checked = StudyManager.sanitizeKanjiPatterns(checked);
       StudyManager.activePatternsKanji = checked;
       await Storage.saveSetting('study_active_patterns_kanji', checked);
     } else {
+      const validEnKeys = Object.keys(StudyManager.EN_PATTERNS || {});
+      checked = checked.filter(k => validEnKeys.includes(k));
+      if (checked.length === 0) checked = [defaultPattern];
       StudyManager.activePatterns = checked;
       await Storage.saveSetting('study_active_patterns', checked);
     }
+
     StudyManager.renderPatternSelector();
+
+    if (StudyManager.currentCard && !StudyManager.isFlipped) {
+      StudyManager.pickCurrentPattern();
+      StudyManager.renderCard();
+    }
   },
 
   // 出題パターン全選択/解除
@@ -158,15 +166,26 @@ const App = {
       const def = document.querySelector(`input[name="pattern_checkbox"][value="${defaultPattern}"]`);
       if (def) def.checked = true;
     }
-    const checked = Array.from(document.querySelectorAll('input[name="pattern_checkbox"]:checked')).map(c => c.value);
+    let checked = Array.from(document.querySelectorAll('input[name="pattern_checkbox"]:checked')).map(c => c.value);
+
     if (isKanji) {
+      checked = StudyManager.sanitizeKanjiPatterns(checked);
       StudyManager.activePatternsKanji = checked;
       await Storage.saveSetting('study_active_patterns_kanji', checked);
     } else {
+      const validEnKeys = Object.keys(StudyManager.EN_PATTERNS || {});
+      checked = checked.filter(k => validEnKeys.includes(k));
+      if (checked.length === 0) checked = [defaultPattern];
       StudyManager.activePatterns = checked;
       await Storage.saveSetting('study_active_patterns', checked);
     }
+
     StudyManager.renderPatternSelector();
+
+    if (StudyManager.currentCard && !StudyManager.isFlipped) {
+      StudyManager.pickCurrentPattern();
+      StudyManager.renderCard();
+    }
   },
 
   // テーマ適用 (bloxfruits / light / dark)
