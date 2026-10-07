@@ -10,7 +10,7 @@
  */
 
 const StudyManager = {
-  version: 'v2.1.0',
+  version: 'v2.2.0',
   allCards: [],
   projects: [],
   activeProjectId: 'deck_default',
@@ -109,6 +109,8 @@ const StudyManager = {
   filterMode: 'all_random', // 'due' | 'all_random' | 'weak' | 'mistakes_today' | 'sequence'
   itemTypeFilter: 'all',     // 'all' | 'word' | 'sentence'
   activePatterns: ['front_to_back', 'back_to_front'],
+  activePatternsUniversal: ['front_to_back', 'back_to_front'],
+  activePatternsLanguage: ['en_to_ja', 'ja_to_en', 'audio_to_ja', 'audio_to_en', 'ja_to_audio', 'en_to_audio'],
   activePatternsKanji: ['char_to_read', 'read_to_char', 'word_to_read', 'read_to_word', 'sentence_fill', 'sentence_read'],
   autoPlayAudio: true,
 
@@ -129,6 +131,18 @@ const StudyManager = {
    */
   sanitizeUniversalPatterns(patterns) {
     const validKeys = Object.keys(this.UNIVERSAL_PATTERNS || {});
+    if (!Array.isArray(patterns) || patterns.length === 0) {
+      return [...validKeys];
+    }
+    const filtered = patterns.filter(k => validKeys.includes(k));
+    return filtered.length > 0 ? filtered : [...validKeys];
+  },
+
+  /**
+   * 語学用6大出題パターンのサニタイズ
+   */
+  sanitizeLanguagePatterns(patterns) {
+    const validKeys = ['en_to_ja', 'ja_to_en', 'audio_to_ja', 'audio_to_en', 'ja_to_audio', 'en_to_audio'];
     if (!Array.isArray(patterns) || patterns.length === 0) {
       return [...validKeys];
     }
@@ -193,17 +207,28 @@ const StudyManager = {
   },
 
   /**
+   * 現在のカードまたはプロジェクトのカードタイプ判定 (language | kanji | general)
+   */
+  getCurrentCardType() {
+    if (this.currentProject && this.currentProject.cardType) {
+      return this.currentProject.cardType; // 'language' | 'kanji' | 'general'
+    }
+    if (this.currentCard) {
+      if (this.currentCard.type === 'kanji' || this.isKanjiCard(this.currentCard)) return 'kanji';
+      if (this.currentCard.type === 'general') return 'general';
+      if (this.currentCard.type === 'language' || (this.currentCard.example && !this.currentCard.type)) return 'language';
+    }
+    const pid = (this.activeProjectId || '').toLowerCase();
+    if (pid.includes('kanji') || pid.includes('漢字')) return 'kanji';
+    if (this.currentProject && this.currentProject.targetLanguage) return 'language';
+    return 'language'; // デフォルトは語学
+  },
+
+  /**
    * 現在のセッションまたはデッキが漢字モードか判定
    */
   isCurrentSessionKanji() {
-    if (this.currentProject && this.currentProject.cardType === 'kanji') return true;
-    if (this.currentProject && this.currentProject.name && this.currentProject.name.includes('漢字')) return true;
-    if (this.currentCard) {
-      return this.isKanjiCard(this.currentCard);
-    }
-    const filter = this.selectedFilter || {};
-    const filterStr = `${filter.level1 || ''} ${filter.level2 || ''} ${filter.level3 || ''}`;
-    return filterStr.includes('漢字') || filterStr.includes('漢検');
+    return this.getCurrentCardType() === 'kanji';
   },
 
   /**
@@ -571,10 +596,20 @@ const StudyManager = {
     // 1. 設定の復元
     const savedUniversalPatterns = await Storage.getSetting('study_active_patterns_universal', null);
     if (savedUniversalPatterns && Array.isArray(savedUniversalPatterns) && savedUniversalPatterns.length > 0) {
-      this.activePatterns = this.sanitizeUniversalPatterns(savedUniversalPatterns);
+      this.activePatternsUniversal = this.sanitizeUniversalPatterns(savedUniversalPatterns);
+      this.activePatterns = this.activePatternsUniversal;
     } else {
-      this.activePatterns = ['front_to_back', 'back_to_front'];
+      this.activePatternsUniversal = ['front_to_back', 'back_to_front'];
+      this.activePatterns = this.activePatternsUniversal;
     }
+
+    const savedLanguagePatterns = await Storage.getSetting('study_active_patterns_language', null);
+    if (savedLanguagePatterns && Array.isArray(savedLanguagePatterns) && savedLanguagePatterns.length > 0) {
+      this.activePatternsLanguage = this.sanitizeLanguagePatterns(savedLanguagePatterns);
+    } else {
+      this.activePatternsLanguage = ['en_to_ja', 'ja_to_en', 'audio_to_ja', 'audio_to_en', 'ja_to_audio', 'en_to_audio'];
+    }
+
     const savedKanjiPatterns = await Storage.getSetting('study_active_patterns_kanji', null);
     this.activePatternsKanji = this.sanitizeKanjiPatterns(savedKanjiPatterns);
 
@@ -622,10 +657,14 @@ const StudyManager = {
     await Storage.saveFilterState(this.selectedFilter);
 
     // 出題パターンのサニタイズ
-    if (this.isCurrentSessionKanji()) {
+    const cardType = this.getCurrentCardType();
+    if (cardType === 'kanji') {
       this.activePatternsKanji = this.sanitizeKanjiPatterns(this.activePatternsKanji);
+    } else if (cardType === 'language') {
+      this.activePatternsLanguage = this.sanitizeLanguagePatterns(this.activePatternsLanguage);
     } else {
-      this.activePatterns = this.sanitizeUniversalPatterns(this.activePatterns);
+      this.activePatternsUniversal = this.sanitizeUniversalPatterns(this.activePatternsUniversal || this.activePatterns);
+      this.activePatterns = this.activePatternsUniversal;
     }
 
     this.updateDeckTriggerButton();
@@ -678,14 +717,43 @@ const StudyManager = {
   },
 
   /**
-   * 出題パターン設定ボタン・モーダルの表示更新（漢字/英語動的切り替え）
+   * 出題パターン設定ボタン・モーダルの表示更新（語学6種/漢字6種/汎用2種 動的分離）
    */
   renderPatternSelector() {
     this.activePatternsKanji = this.sanitizeKanjiPatterns(this.activePatternsKanji);
-    this.activePatterns = this.sanitizeUniversalPatterns(this.activePatterns);
-    const isKanji = this.isCurrentSessionKanji();
-    const activeList = isKanji ? this.activePatternsKanji : this.activePatterns;
-    const totalCount = isKanji ? 6 : 2;
+    this.activePatternsLanguage = this.sanitizeLanguagePatterns(this.activePatternsLanguage);
+    this.activePatternsUniversal = this.sanitizeUniversalPatterns(this.activePatternsUniversal || this.activePatterns);
+    this.activePatterns = this.activePatternsUniversal;
+
+    const cardType = this.getCurrentCardType();
+    let activeList = [];
+    let totalCount = 2;
+    let modalTitleText = '';
+    let patternDict = {};
+    let deselectText = '';
+
+    if (cardType === 'kanji') {
+      activeList = this.activePatternsKanji;
+      totalCount = 6;
+      modalTitleText = '🎯 漢字 6大出題パターン';
+      patternDict = this.KANJI_PATTERNS;
+      deselectText = '全解除 (字➔読のみ)';
+    } else if (cardType === 'language') {
+      activeList = this.activePatternsLanguage;
+      totalCount = 6;
+      const cardLang = this.getCardLanguage(this.currentCard);
+      const langMeta = (window.SUPPORTED_LANGUAGES && window.SUPPORTED_LANGUAGES[cardLang]) || { name: '英語', short: '英' };
+      modalTitleText = `🎯 ${langMeta.name} 6大出題パターン`;
+      patternDict = this.getLanguagePatterns(cardLang);
+      deselectText = `全解除 (${langMeta.short}➔日のみ)`;
+    } else {
+      activeList = this.activePatternsUniversal;
+      totalCount = 2;
+      modalTitleText = '🎯 汎用出題パターンの選択 (全2種)';
+      patternDict = this.UNIVERSAL_PATTERNS;
+      deselectText = '全解除 (表➔裏のみ)';
+    }
+
     const btn = document.getElementById('pattern-btn-count');
     if (btn) {
       btn.innerText = `${activeList.length}/${totalCount}`;
@@ -693,12 +761,11 @@ const StudyManager = {
 
     const modalTitle = document.querySelector('#modal-patterns .modal-title');
     if (modalTitle) {
-      modalTitle.innerText = isKanji ? '🎯 漢字 6大出題パターン' : '🎯 出題パターンの選択 (全2種)';
+      modalTitle.innerText = modalTitleText;
     }
 
     const patternGrid = document.querySelector('#modal-patterns .pattern-grid');
     if (patternGrid) {
-      const patternDict = isKanji ? this.KANJI_PATTERNS : this.UNIVERSAL_PATTERNS;
       const set = new Set(activeList);
       let html = '';
       for (const [key, p] of Object.entries(patternDict)) {
@@ -714,7 +781,7 @@ const StudyManager = {
 
     const deselectBtn = document.getElementById('btn-pattern-deselect-all');
     if (deselectBtn) {
-      deselectBtn.innerText = isKanji ? '全解除 (字➔読のみ)' : '全解除 (表➔裏のみ)';
+      deselectBtn.innerText = deselectText;
     }
   },
 
@@ -934,17 +1001,20 @@ const StudyManager = {
       this.currentKanjiQuestion = null;
       return;
     }
-    const isKanji = this.isKanjiCard(this.currentCard);
-    if (isKanji) {
+    const cardType = this.getCurrentCardType();
+    if (cardType === 'kanji') {
       const patterns = this.sanitizeKanjiPatterns(this.activePatternsKanji);
       const idx = Math.floor(Math.random() * patterns.length);
       const rawPattern = patterns[idx];
       this.currentKanjiQuestion = this.pickKanjiQuestion(this.currentCard, rawPattern);
       this.currentPattern = this.currentKanjiQuestion.pattern;
+    } else if (cardType === 'language') {
+      const patterns = this.sanitizeLanguagePatterns(this.activePatternsLanguage);
+      const idx = Math.floor(Math.random() * patterns.length);
+      this.currentPattern = patterns[idx] || 'en_to_ja';
+      this.currentKanjiQuestion = null;
     } else {
-      const patterns = (this.activePatterns && this.activePatterns.length > 0)
-        ? this.sanitizeUniversalPatterns(this.activePatterns)
-        : ['front_to_back'];
+      const patterns = this.sanitizeUniversalPatterns(this.activePatternsUniversal || this.activePatterns);
       const idx = Math.floor(Math.random() * patterns.length);
       this.currentPattern = patterns[idx] || 'front_to_back';
       this.currentKanjiQuestion = null;

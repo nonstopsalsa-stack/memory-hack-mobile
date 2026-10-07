@@ -1134,6 +1134,115 @@ html, body {
   box-shadow: 0 0 10px var(--color-cyan-glow);
 }
 
+/* ==========================================================================
+   Hierarchy Modal Tier 0 Project Selector Strip (第0階層 教科セレクター帯)
+   ========================================================================== */
+.hierarchy-tier0-section {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.hierarchy-tier0-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.hierarchy-tier0-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hierarchy-tier0-count {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.hierarchy-tier0-pills {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hierarchy-tier0-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.tier0-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.tier0-pill:hover, .tier0-pill:active {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.45);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.tier0-pill.active {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.35) 0%, rgba(2, 132, 199, 0.45) 100%);
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+}
+
+.tier0-pill-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.tier0-pill-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.tier0-pill-count {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.tier0-pill.active .tier0-pill-count {
+  color: #bae6fd;
+}
+
+.tier0-pill-check {
+  font-size: 0.75rem;
+  color: #38bdf8;
+  font-weight: bold;
+}
+
 /* Hierarchy Tree Accordion Content */
 .hierarchy-tree-content {
   overflow-y: auto;
@@ -2166,6 +2275,54 @@ html, body {
   opacity: 0.5 !important;
 }
 
+/* 第0階層セレクター帯 (ライトテーマ) */
+[data-theme="light"] .hierarchy-tier0-section {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  border: 1px solid rgba(14, 165, 233, 0.35) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme="light"] .hierarchy-tier0-title {
+  color: #0284c7 !important;
+}
+
+[data-theme="light"] .hierarchy-tier0-count {
+  color: #64748b !important;
+  background: rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme="light"] .tier0-pill {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .tier0-pill:hover,
+[data-theme="light"] .tier0-pill:active {
+  background: #f0f9ff !important;
+  border-color: #0284c7 !important;
+  color: #0284c7 !important;
+}
+
+[data-theme="light"] .tier0-pill.active {
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%) !important;
+  border-color: #0284c7 !important;
+  color: #0369a1 !important;
+  box-shadow: 0 0 10px rgba(14, 165, 233, 0.25) !important;
+}
+
+[data-theme="light"] .tier0-pill-count {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .tier0-pill.active .tier0-pill-count {
+  color: #0369a1 !important;
+}
+
+[data-theme="light"] .tier0-pill-check {
+  color: #0284c7 !important;
+}
+
 /* ========================================================================
    ブランドロゴ表示制御（Roblox・鬼滅テーマはクロスの剣を維持）
    ======================================================================== */
@@ -2178,6 +2335,50 @@ html, body {
 [data-theme="muichiro"] .brand-logo .logo-intellect,
 :root:not([data-theme="light"]):not([data-theme="dark"]) .brand-logo .logo-intellect {
   display: none !important;
+}
+
+/* 第0階層セレクター帯 (Robloxテーマ) */
+[data-theme="bloxfruits"] .hierarchy-tier0-section {
+  background: linear-gradient(135deg, rgba(30, 27, 75, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%) !important;
+  border-color: rgba(234, 179, 8, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="bloxfruits"] .hierarchy-tier0-title {
+  color: #eab308 !important;
+}
+
+[data-theme="bloxfruits"] .tier0-pill.active {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.3) 0%, rgba(202, 138, 4, 0.4) 100%) !important;
+  border-color: #eab308 !important;
+  color: #fef08a !important;
+  box-shadow: 0 0 12px rgba(234, 179, 8, 0.4) !important;
+}
+
+[data-theme="bloxfruits"] .tier0-pill-check {
+  color: #eab308 !important;
+}
+
+/* 第0階層セレクター帯 (無一郎テーマ) */
+[data-theme="muichiro"] .hierarchy-tier0-section {
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.25) 0%, rgba(15, 23, 42, 0.9) 100%) !important;
+  border-color: rgba(45, 212, 191, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="muichiro"] .hierarchy-tier0-title {
+  color: #2dd4bf !important;
+}
+
+[data-theme="muichiro"] .tier0-pill.active {
+  background: linear-gradient(135deg, rgba(45, 212, 191, 0.3) 0%, rgba(20, 184, 166, 0.4) 100%) !important;
+  border-color: #2dd4bf !important;
+  color: #ccfbf1 !important;
+  box-shadow: 0 0 12px rgba(45, 212, 191, 0.4) !important;
+}
+
+[data-theme="muichiro"] .tier0-pill-check {
+  color: #2dd4bf !important;
 }
 
 /* ==========================================================================

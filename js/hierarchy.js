@@ -181,15 +181,48 @@ const Hierarchy = {
    * @param {Array} cards - 全カード配列
    * @param {Object} currentFilter - 現在選択中のフィルター { level1, level2, level3 }
    * @param {Function} onSelect - 選択決定時コールバック (filter) => void
+   * @param {Object} [projectOptions] - 第0階層プロジェクトオプション { projects, activeProjectId, allCards, onProjectSelect }
    */
-  renderTreeSheet(container, cards, currentFilter, onSelect) {
+  renderTreeSheet(container, cards, currentFilter, onSelect, projectOptions) {
     if (!container) return;
     const tree = this.buildTree(cards || []);
     const filter = currentFilter || { level1: 'all', level2: 'all', level3: 'all' };
 
     const isAllActive = !filter.level1 || filter.level1 === 'all';
 
+    let tier0Html = '';
+    if (projectOptions && Array.isArray(projectOptions.projects) && projectOptions.projects.length > 0) {
+      const projects = projectOptions.projects;
+      const activeProjId = projectOptions.activeProjectId || (projects[0] && projects[0].id);
+      const allCards = projectOptions.allCards || [];
+
+      tier0Html = `
+        <!-- 第0階層（教科・プロジェクト）セレクター帯 -->
+        <div class="hierarchy-tier0-section">
+          <div class="hierarchy-tier0-label">
+            <span class="hierarchy-tier0-title">🏷️ 第0階層: 学習プロジェクト（教科）</span>
+            <span class="hierarchy-tier0-count" id="hierarchy-project-count">全${projects.length}件</span>
+          </div>
+          <div class="hierarchy-tier0-pills" id="hierarchy-tier0-pills">
+            ${projects.map(p => {
+              const isActive = p.id === activeProjId;
+              const count = allCards.filter(c => (c.projectDeckId || 'deck_default') === p.id).length;
+              return `
+                <button class="tier0-pill ${isActive ? 'active' : ''}" data-project-id="${this.escapeHtml(p.id)}" type="button">
+                  <span class="tier0-pill-icon">${p.icon || '📁'}</span>
+                  <span class="tier0-pill-name">${this.escapeHtml(p.name)}</span>
+                  <span class="tier0-pill-count">(${count}枚)</span>
+                  ${isActive ? '<span class="tier0-pill-check">✓</span>' : ''}
+                </button>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
     let html = `
+      ${tier0Html}
       <!-- 最上位: すべてのカード (ALL) -->
       <div class="hierarchy-tree-item all-item ${isAllActive ? 'active' : ''}" data-l1="all" data-l2="all" data-l3="all">
         <div class="hierarchy-item-left">
@@ -314,6 +347,17 @@ const Hierarchy = {
 
     html += `</div>`;
     container.innerHTML = html;
+
+    // 第0階層ピルクリックイベント結線
+    if (projectOptions && typeof projectOptions.onProjectSelect === 'function') {
+      container.querySelectorAll('.tier0-pill[data-project-id]').forEach(pill => {
+        pill.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const projId = pill.getAttribute('data-project-id');
+          projectOptions.onProjectSelect(projId);
+        });
+      });
+    }
 
     // クリックイベントの結線
     container.querySelectorAll('button[data-l1], .hierarchy-tree-item[data-l1]').forEach(elem => {

@@ -6,7 +6,7 @@ const App = {
   deferredPrompt: null,
 
   async init() {
-    console.log('[App] MEMORY HACK Mobile v2.1.0 Initializing...');
+    console.log('[App] MEMORY HACK Mobile v2.2.0 Initializing...');
 
     // 0. テーマ初期化 (デフォルトは正式な「ライト」)
     try {
@@ -28,7 +28,7 @@ const App = {
     }
 
     // 起動トースト表示
-    this.showToast('🚀 MEMORY HACK Mobile v2.1.0 準備完了', 'info');
+    this.showToast('🚀 MEMORY HACK Mobile v2.2.0 準備完了', 'info');
 
     // 2. イベントリスナー登録
     this.bindEvents();
@@ -110,10 +110,9 @@ const App = {
     }
   },
 
-  // 第0階層プロジェクト選択ボトムシートのオープン
+  // 第0階層プロジェクト選択ボトムシートのオープン（統合階層モーダルへ統一）
   async openProjectModal() {
-    await this.renderProjectList();
-    this.openModal('modal-project');
+    await this.openHierarchyModal();
   },
 
   // プロジェクト一覧ボトムシートの動的レンダリング
@@ -186,10 +185,14 @@ const App = {
       .replace(/'/g, '&#039;');
   },
 
-  // デッキツリー階層選択ボトムシートのオープン
-  openHierarchyModal() {
+  // デッキツリー階層選択ボトムシートのオープン（第0階層統合型）
+  async openHierarchyModal() {
     const container = document.getElementById('hierarchy-tree-container');
     if (container && typeof Hierarchy !== 'undefined') {
+      const projects = (typeof Storage !== 'undefined') ? await Storage.getProjects() : [];
+      const activeProjectId = (typeof Storage !== 'undefined') ? await Storage.getActiveProjectId() : 'deck_default';
+      const allCards = (typeof Storage !== 'undefined') ? await Storage.getAllCards() : (StudyManager.allCards || []);
+
       Hierarchy.renderTreeSheet(
         container,
         StudyManager.cards,
@@ -198,6 +201,24 @@ const App = {
           await StudyManager.setHierarchyFilter(filter);
           this.closeModal('modal-hierarchy');
           this.showToast(`📚 「${Hierarchy.formatBreadcrumb(filter)}」を選択しました`, 'info');
+        },
+        {
+          projects,
+          activeProjectId,
+          allCards,
+          onProjectSelect: async (projId) => {
+            if (projId === activeProjectId) return;
+            await Storage.setActiveProjectId(projId);
+            if (typeof StudyManager !== 'undefined' && StudyManager.switchProject) {
+              await StudyManager.switchProject(projId);
+            }
+            await this.updateProjectPill();
+            const activeProj = projects.find(p => p.id === projId) || { name: '教科', icon: '📁' };
+            const count = (StudyManager && StudyManager.cards) ? StudyManager.cards.length : 0;
+            this.showToast(`📁 「${activeProj.icon || ''} ${activeProj.name}」を選択しました (${count}枚)`, 'info');
+            // モーダルを開いたまま即時再描画
+            await this.openHierarchyModal();
+          }
         }
       );
     }
@@ -224,19 +245,27 @@ const App = {
     }
   },
 
-  // 出題パターンチェック変更
+  // 出題パターンチェック変更（語学・漢字・汎用 3大体系連動）
   async onPatternChange() {
-    const isKanji = StudyManager.isCurrentSessionKanji();
-    const defaultPattern = isKanji ? 'char_to_read' : 'front_to_back';
+    const cardType = (typeof StudyManager !== 'undefined' && StudyManager.getCurrentCardType)
+      ? StudyManager.getCurrentCardType()
+      : 'language';
+    const defaultPattern = cardType === 'kanji' ? 'char_to_read' : (cardType === 'general' ? 'front_to_back' : 'en_to_ja');
     let checked = Array.from(document.querySelectorAll('input[name="pattern_checkbox"]:checked')).map(c => c.value);
 
-    if (isKanji) {
+    if (cardType === 'kanji') {
       checked = StudyManager.sanitizeKanjiPatterns(checked);
       StudyManager.activePatternsKanji = checked;
       await Storage.saveSetting('study_active_patterns_kanji', checked);
+    } else if (cardType === 'language') {
+      checked = StudyManager.sanitizeLanguagePatterns(checked);
+      if (checked.length === 0) checked = [defaultPattern];
+      StudyManager.activePatternsLanguage = checked;
+      await Storage.saveSetting('study_active_patterns_language', checked);
     } else {
       checked = StudyManager.sanitizeUniversalPatterns(checked);
       if (checked.length === 0) checked = [defaultPattern];
+      StudyManager.activePatternsUniversal = checked;
       StudyManager.activePatterns = checked;
       await Storage.saveSetting('study_active_patterns_universal', checked);
     }
@@ -249,10 +278,12 @@ const App = {
     }
   },
 
-  // 出題パターン全選択/解除
+  // 出題パターン全選択/解除（語学・漢字・汎用 3大体系連動）
   async toggleAllPatterns(selectAll) {
-    const isKanji = StudyManager.isCurrentSessionKanji();
-    const defaultPattern = isKanji ? 'char_to_read' : 'front_to_back';
+    const cardType = (typeof StudyManager !== 'undefined' && StudyManager.getCurrentCardType)
+      ? StudyManager.getCurrentCardType()
+      : 'language';
+    const defaultPattern = cardType === 'kanji' ? 'char_to_read' : (cardType === 'general' ? 'front_to_back' : 'en_to_ja');
     const checkboxes = document.querySelectorAll('input[name="pattern_checkbox"]');
     checkboxes.forEach(cb => cb.checked = selectAll);
     if (!selectAll) {
@@ -261,13 +292,19 @@ const App = {
     }
     let checked = Array.from(document.querySelectorAll('input[name="pattern_checkbox"]:checked')).map(c => c.value);
 
-    if (isKanji) {
+    if (cardType === 'kanji') {
       checked = StudyManager.sanitizeKanjiPatterns(checked);
       StudyManager.activePatternsKanji = checked;
       await Storage.saveSetting('study_active_patterns_kanji', checked);
+    } else if (cardType === 'language') {
+      checked = StudyManager.sanitizeLanguagePatterns(checked);
+      if (checked.length === 0) checked = [defaultPattern];
+      StudyManager.activePatternsLanguage = checked;
+      await Storage.saveSetting('study_active_patterns_language', checked);
     } else {
       checked = StudyManager.sanitizeUniversalPatterns(checked);
       if (checked.length === 0) checked = [defaultPattern];
+      StudyManager.activePatternsUniversal = checked;
       StudyManager.activePatterns = checked;
       await Storage.saveSetting('study_active_patterns_universal', checked);
     }
@@ -384,7 +421,7 @@ const App = {
 
   registerServiceWorker() {
     if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
-      navigator.serviceWorker.register('./service-worker.js?v=2.1.0', { updateViaCache: 'none' }).then((reg) => {
+      navigator.serviceWorker.register('./service-worker.js?v=2.2.0', { updateViaCache: 'none' }).then((reg) => {
         console.log('[SW] Registered successfully:', reg.scope);
         // 起動時に毎回バックグラウンドで最新SWの存在を即時チェック
         reg.update().catch(() => {});
