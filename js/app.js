@@ -6,7 +6,7 @@ const App = {
   deferredPrompt: null,
 
   async init() {
-    console.log('[App] MEMORY HACK Mobile v2.2.0 Initializing...');
+    console.log('[App] MEMORY HACK Mobile v2.2.1 Initializing...');
 
     // 0. テーマ初期化 (デフォルトは正式な「ライト」)
     try {
@@ -28,7 +28,7 @@ const App = {
     }
 
     // 起動トースト表示
-    this.showToast('🚀 MEMORY HACK Mobile v2.2.0 準備完了', 'info');
+    this.showToast('🚀 MEMORY HACK Mobile v2.2.1 準備完了', 'info');
 
     // 2. イベントリスナー登録
     this.bindEvents();
@@ -93,18 +93,22 @@ const App = {
     });
   },
 
-  // 第0階層（プロジェクト選択）ピルの表示更新
+  // 第0階層（プロジェクト選択）およびデッキトリガーの表示更新
   async updateProjectPill() {
-    const iconEl = document.getElementById('project-icon');
-    const nameEl = document.getElementById('project-name');
-    if (!iconEl && !nameEl) return;
-
     try {
       const activeProj = (typeof Storage !== 'undefined' && Storage.getActiveProject)
         ? await Storage.getActiveProject()
         : { name: '哲生英語', icon: '🇬🇧' };
+
+      const iconEl = document.getElementById('project-icon');
+      const nameEl = document.getElementById('project-name');
       if (iconEl) iconEl.innerText = activeProj.icon || '📁';
       if (nameEl) nameEl.innerText = activeProj.name || '教科';
+
+      // v2.2.1: パンくず統合デッキ選択ボタンの表示も同期更新
+      if (typeof StudyManager !== 'undefined' && StudyManager.updateDeckTriggerButton) {
+        StudyManager.updateDeckTriggerButton();
+      }
     } catch (e) {
       console.warn('[App] updateProjectPill failed:', e);
     }

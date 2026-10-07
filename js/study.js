@@ -10,7 +10,7 @@
  */
 
 const StudyManager = {
-  version: 'v2.2.0',
+  version: 'v2.2.1',
   allCards: [],
   projects: [],
   activeProjectId: 'deck_default',
@@ -674,13 +674,28 @@ const StudyManager = {
   },
 
   /**
-   * デッキ選択トリガーボタンの表示更新
+   * デッキ選択トリガーボタンの表示更新 (v2.2.1: 教科＋デッキのパンくず統合表示)
    */
   updateDeckTriggerButton() {
     const labelEl = document.getElementById('deck-select-label');
-    if (labelEl) {
-      labelEl.innerText = Hierarchy.formatBreadcrumb(this.selectedFilter);
+    if (!labelEl) return;
+
+    let proj = this.currentProject;
+    if (!proj && this.projects && this.projects.length > 0) {
+      proj = this.projects.find(p => p.id === this.activeProjectId) || this.projects[0];
     }
+    const projIcon = (proj && proj.icon) ? proj.icon : '📁';
+    const projName = (proj && proj.name) ? proj.name : '教科';
+
+    const deckText = (typeof Hierarchy !== 'undefined' && Hierarchy.formatBreadcrumb)
+      ? Hierarchy.formatBreadcrumb(this.selectedFilter)
+      : '📚 すべてのデッキ';
+
+    labelEl.innerHTML = `
+      <span class="deck-trigger-proj">${projIcon} ${projName}</span>
+      <span class="deck-trigger-sep">｜</span>
+      <span class="deck-trigger-deck">${deckText}</span>
+    `;
   },
 
   /**

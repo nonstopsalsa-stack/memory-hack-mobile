@@ -171,10 +171,11 @@ html, body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .sync-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   background: #1a2336;
@@ -186,6 +187,8 @@ html, body {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .sync-badge {
@@ -289,6 +292,32 @@ html, body {
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.deck-trigger-proj {
+  font-weight: 800;
+  color: var(--color-cyan);
+  flex-shrink: 0;
+  font-size: 0.78rem;
+}
+
+.deck-trigger-sep {
+  opacity: 0.45;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+  margin: 0 1px;
+}
+
+.deck-trigger-deck {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  font-size: 0.78rem;
 }
 
 .dropdown-caret {
@@ -2553,5 +2582,19 @@ html, body {
   max-height: calc(100dvh - 280px) !important;
   -webkit-overflow-scrolling: touch;
 }
+
+/* ==========================================================================
+   v2.2.1: パンくず統合デッキトリガーのテーマ別カラー上書き
+   ========================================================================== */
+[data-theme="light"] .deck-trigger-proj {
+  color: #4f46e5 !important;
+}
+[data-theme="bloxfruits"] .deck-trigger-proj {
+  color: #ffb800 !important;
+}
+[data-theme="muichiro"] .deck-trigger-proj {
+  color: #2dd4bf !important;
+}
+
 
 
