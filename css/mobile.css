@@ -114,6 +114,59 @@ html, body {
   margin-left: 2px;
 }
 
+/* ==========================================================================
+   Project Pill Selector (Tier 0 / 教科選択)
+   ========================================================================== */
+.project-pill-wrap {
+  display: flex;
+  align-items: center;
+  flex-shrink: 1;
+  min-width: 0;
+  margin: 0 0.4rem;
+}
+
+.project-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  border-radius: 9999px;
+  padding: 0.32rem 0.65rem;
+  color: var(--color-text-main);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  max-width: 140px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.project-pill-btn:hover, .project-pill-btn:active {
+  background: rgba(0, 240, 255, 0.18);
+  border-color: var(--color-cyan);
+  box-shadow: 0 0 10px var(--color-cyan-glow);
+}
+
+#project-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+#project-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-pill-btn .dropdown-caret {
+  font-size: 0.65rem;
+  color: var(--color-cyan);
+  margin-left: 2px;
+  flex-shrink: 0;
+}
+
 .top-actions {
   display: flex;
   align-items: center;
@@ -966,6 +1019,119 @@ html, body {
   font-size: 0.7rem;
   color: var(--color-text-sub);
   font-weight: 500;
+}
+
+/* ==========================================================================
+   Project Bottom Sheet (Tier 0 List)
+   ========================================================================== */
+.project-sheet {
+  max-height: 80vh;
+}
+
+.project-list-content {
+  overflow-y: auto;
+  max-height: calc(80vh - 75px);
+  padding: 0.6rem 0.4rem 2rem 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.project-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  background: linear-gradient(135deg, rgba(26, 35, 54, 0.9) 0%, rgba(18, 24, 38, 0.95) 100%);
+  border: 1.5px solid var(--border-color);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.project-item:hover, .project-item:active {
+  border-color: rgba(0, 240, 255, 0.5);
+  background: rgba(26, 35, 54, 1);
+}
+
+.project-item.active {
+  border-color: var(--color-cyan);
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.12) 0%, rgba(26, 35, 54, 0.95) 100%);
+  box-shadow: 0 0 16px var(--color-cyan-glow);
+}
+
+.project-item-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.project-item-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.project-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.project-item-name {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--color-text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-item-desc {
+  font-size: 0.74rem;
+  color: var(--color-text-sub);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-item-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.project-card-badge {
+  font-size: 0.74rem;
+  font-weight: 700;
+  background: #1a2336;
+  color: var(--color-cyan);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  padding: 3px 8px;
+  border-radius: 9999px;
+}
+
+.btn-project-select {
+  background: #1a2336;
+  border: 1px solid var(--border-color);
+  color: var(--color-text-main);
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.project-item.active .btn-project-select {
+  background: var(--color-cyan);
+  color: #0a0e17;
+  border-color: var(--color-cyan);
+  box-shadow: 0 0 10px var(--color-cyan-glow);
 }
 
 /* Hierarchy Tree Accordion Content */
@@ -1861,6 +2027,49 @@ html, body {
 [data-theme="light"] .hierarchy-tier1-group {
   background: #ffffff !important;
   border: 1px solid #e2e8f0 !important;
+}
+
+/* プロジェクト選択 (ライトテーマ) */
+[data-theme="light"] .project-pill-btn {
+  background: rgba(99, 102, 241, 0.08) !important;
+  border-color: rgba(99, 102, 241, 0.35) !important;
+  color: #0b132b !important;
+}
+[data-theme="light"] .project-item {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+[data-theme="light"] .project-item:hover,
+[data-theme="light"] .project-item:active {
+  border-color: #6366f1 !important;
+  background: #f8fafc !important;
+}
+[data-theme="light"] .project-item.active {
+  background: #eef2ff !important;
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 14px rgba(99, 102, 241, 0.25) !important;
+}
+[data-theme="light"] .project-item-name {
+  color: #0b132b !important;
+}
+[data-theme="light"] .project-item-desc {
+  color: #64748b !important;
+}
+[data-theme="light"] .project-card-badge {
+  background: #e0e7ff !important;
+  color: #4338ca !important;
+  border: 1px solid #c7d2fe !important;
+}
+[data-theme="light"] .btn-project-select {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #0b132b !important;
+}
+[data-theme="light"] .project-item.active .btn-project-select {
+  background: #6366f1 !important;
+  color: #ffffff !important;
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3) !important;
 }
 
 [data-theme="light"] .hierarchy-tier1-group.open {

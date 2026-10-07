@@ -10,7 +10,11 @@
  */
 
 const StudyManager = {
-  version: 'v2.0.0',
+  version: 'v2.1.0',
+  allCards: [],
+  projects: [],
+  activeProjectId: 'deck_default',
+  currentProject: null,
   cards: [],
   queue: [],
   currentIndex: 0,
@@ -47,12 +51,29 @@ const StudyManager = {
   },
 
   /**
-   * カードの対象言語コードを自動判定
+   * 対象プロジェクトに合致するカードを抽出
+   */
+  filterCardsForProject(allCards, projectId, projects) {
+    if (!Array.isArray(allCards) || allCards.length === 0) return [];
+    const fallbackId = (projects && projects[0] && projects[0].id) || 'deck_default';
+    const targetId = projectId || fallbackId;
+    const hasAnyProjectDeckId = allCards.some(c => c.projectDeckId);
+    if (!hasAnyProjectDeckId && targetId === fallbackId) {
+      return allCards;
+    }
+    return allCards.filter(c => {
+      const pid = c.projectDeckId || fallbackId;
+      return pid === targetId;
+    });
+  },
+
+  /**
+   * カードの対象言語コードを自動判定 (プロジェクト設定優先連動)
    */
   getCardLanguage(card) {
-    if (!card) return 'en-US';
-    if (card.targetLanguage) return card.targetLanguage;
-    const cat = `${card.category1 || ''} ${card.category2 || ''} ${card.category3 || ''} ${card.deck || ''}`.toLowerCase();
+    if (card && card.targetLanguage) return card.targetLanguage;
+    if (this.currentProject && this.currentProject.targetLanguage) return this.currentProject.targetLanguage;
+    const cat = `${(card && card.category1) || ''} ${(card && card.category2) || ''} ${(card && card.category3) || ''} ${(card && card.deck) || ''}`.toLowerCase();
     if (cat.includes('スペイン') || cat.includes('spanish')) return 'es-ES';
     if (cat.includes('広東') || cat.includes('cantonese')) return 'zh-HK';
     if (cat.includes('台湾') || cat.includes('taiwan')) return 'zh-TW';
@@ -161,6 +182,7 @@ const StudyManager = {
    */
   isKanjiCard(card) {
     if (!card) return false;
+    if (this.currentProject && this.currentProject.cardType === 'kanji') return true;
     if (card.type === 'kanji') return true;
     const cat = `${card.category1 || ''} ${card.category2 || ''} ${card.category3 || ''} ${card.deck || ''}`;
     if (cat.includes('漢字') || cat.includes('漢検')) return true;
@@ -174,6 +196,8 @@ const StudyManager = {
    * 現在のセッションまたはデッキが漢字モードか判定
    */
   isCurrentSessionKanji() {
+    if (this.currentProject && this.currentProject.cardType === 'kanji') return true;
+    if (this.currentProject && this.currentProject.name && this.currentProject.name.includes('漢字')) return true;
     if (this.currentCard) {
       return this.isKanjiCard(this.currentCard);
     }
@@ -538,7 +562,11 @@ const StudyManager = {
   },
 
   async init() {
-    this.cards = await Storage.getAllCards();
+    this.allCards = await Storage.getAllCards();
+    this.projects = await Storage.getProjects();
+    this.activeProjectId = await Storage.getActiveProjectId();
+    this.currentProject = this.projects.find(p => p.id === this.activeProjectId) || this.projects[0];
+    this.cards = this.filterCardsForProject(this.allCards, this.activeProjectId, this.projects);
 
     // 1. 設定の復元
     const savedUniversalPatterns = await Storage.getSetting('study_active_patterns_universal', null);
@@ -569,7 +597,37 @@ const StudyManager = {
   },
 
   async onDeckLoaded(newCards) {
-    this.cards = newCards;
+    this.allCards = newCards;
+    this.projects = await Storage.getProjects();
+    this.activeProjectId = await Storage.getActiveProjectId();
+    this.currentProject = this.projects.find(p => p.id === this.activeProjectId) || this.projects[0];
+    this.cards = this.filterCardsForProject(this.allCards, this.activeProjectId, this.projects);
+    this.updateDeckTriggerButton();
+    this.renderPatternSelector();
+    await this.buildQueue();
+    this.showNextCard();
+  },
+
+  /**
+   * 第0階層 プロジェクト切り替えリアクティブ処理
+   */
+  async switchProject(projectId) {
+    this.activeProjectId = projectId;
+    this.projects = await Storage.getProjects();
+    this.currentProject = this.projects.find(p => p.id === projectId) || this.projects[0];
+    this.cards = this.filterCardsForProject(this.allCards, projectId, this.projects);
+
+    // 階層フィルターのリセット (前プロジェクトのジャンルを引きずらない)
+    this.selectedFilter = { level1: 'all', level2: 'all', level3: 'all' };
+    await Storage.saveFilterState(this.selectedFilter);
+
+    // 出題パターンのサニタイズ
+    if (this.isCurrentSessionKanji()) {
+      this.activePatternsKanji = this.sanitizeKanjiPatterns(this.activePatternsKanji);
+    } else {
+      this.activePatterns = this.sanitizeUniversalPatterns(this.activePatterns);
+    }
+
     this.updateDeckTriggerButton();
     this.renderPatternSelector();
     await this.buildQueue();
@@ -1005,6 +1063,10 @@ const StudyManager = {
 
     // 3. カード情報の永続化
     await Storage.updateCard(this.currentCard);
+    if (Array.isArray(this.allCards)) {
+      const allIdx = this.allCards.findIndex(c => c.id === this.currentCard.id || (c.front === this.currentCard.front && c.back === this.currentCard.back));
+      if (allIdx >= 0) this.allCards[allIdx] = { ...this.currentCard };
+    }
 
     // 4. 次のカードへ進む
     this.currentIndex++;

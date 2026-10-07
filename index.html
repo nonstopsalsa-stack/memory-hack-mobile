@@ -22,7 +22,7 @@
   <meta http-equiv="Expires" content="0">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="css/mobile.css?v=2.0.0">
+  <link rel="stylesheet" href="css/mobile.css?v=2.1.0">
 </head>
 <body>
 
@@ -48,7 +48,16 @@
           </svg>
         </span>
         <span class="brand-title">MEMORY HACK</span>
-        <span class="brand-ver-badge">v2.0.0</span>
+        <span class="brand-ver-badge">v2.1.0</span>
+      </div>
+
+      <!-- 第0階層（プロジェクト選択）ピル -->
+      <div class="project-pill-wrap">
+        <button id="btn-project-trigger" class="project-pill-btn" onclick="App.openProjectModal()" title="教科（プロジェクト）を選択">
+          <span id="project-icon">🇬🇧</span>
+          <span id="project-name">哲生英語</span>
+          <span class="dropdown-caret">▾</span>
+        </button>
       </div>
 
       <div class="top-actions">
@@ -132,6 +141,25 @@
   </div>
 
   <!-- ========================================================================
+       MODAL: 第0階層 教科（プロジェクト）選択（ボトムシート型）
+       ======================================================================== -->
+  <div id="modal-project" class="modal-overlay hidden" onclick="App.closeModal('modal-project')">
+    <div class="modal-sheet bottom-sheet project-sheet" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <h3 class="modal-title">📁 教科（プロジェクト）の選択</h3>
+          <span class="modal-subtitle">学習するプロジェクト（第0階層）を切り替えます</span>
+        </div>
+        <button class="modal-close-btn" onclick="App.closeModal('modal-project')">✕</button>
+      </div>
+
+      <div id="project-list-container" class="project-list-content">
+        <!-- App.renderProjectList により動的レンダリング -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
        MODAL: デッキツリー階層選択（ボトムシート／アコーディオン型）
        ======================================================================== -->
   <div id="modal-hierarchy" class="modal-overlay hidden" onclick="App.closeModal('modal-hierarchy')">
@@ -203,7 +231,7 @@
       <div class="modal-header">
         <div class="modal-title-wrap">
           <h3 class="modal-title">⚙️ 設定</h3>
-          <span class="modal-subtitle">MEMORY HACK Mobile v2.0.0</span>
+          <span class="modal-subtitle">MEMORY HACK Mobile v2.1.0</span>
         </div>
         <button class="modal-close-btn" onclick="App.closeModal('modal-settings')">✕</button>
       </div>
@@ -277,14 +305,14 @@
     </div>
   </div>
 
-  <!-- Scripts (Cache-busted with ?v=2.0.0) -->
-  <script src="js/config.js?v=2.0.0"></script>
-  <script src="js/storage.js?v=2.0.0"></script>
-  <script src="js/srs.js?v=2.0.0"></script>
-  <script src="js/hierarchy.js?v=2.0.0"></script>
-  <script src="js/audio.js?v=2.0.0"></script>
-  <script src="js/sync.js?v=2.0.0"></script>
-  <script src="js/study.js?v=2.0.0"></script>
-  <script src="js/app.js?v=2.0.0"></script>
+  <!-- Scripts (Cache-busted with ?v=2.1.0) -->
+  <script src="js/config.js?v=2.1.0"></script>
+  <script src="js/storage.js?v=2.1.0"></script>
+  <script src="js/srs.js?v=2.1.0"></script>
+  <script src="js/hierarchy.js?v=2.1.0"></script>
+  <script src="js/audio.js?v=2.1.0"></script>
+  <script src="js/sync.js?v=2.1.0"></script>
+  <script src="js/study.js?v=2.1.0"></script>
+  <script src="js/app.js?v=2.1.0"></script>
 </body>
 </html>

@@ -164,21 +164,32 @@ const SyncManager = {
       let remoteCards = data.cards;
       const remoteUpdatedAt = data.updatedAt || new Date().toISOString();
 
-      // ★ プロファイルに基づくフィルタリング (v1.5.0 / v2.39.0連動)
+      // ★ プロファイルに基づくフィルタリング & 第0階層プロジェクト永続化 (v2.1.0)
       const deviceProfile = await Storage.getSetting('deviceProfile', 'all');
-      if (deviceProfile !== 'all' && Array.isArray(data.projects) && data.projects.length > 0) {
-        const allowedProjectIds = new Set();
+      const allowedProjects = [];
+      const allowedProjectIds = new Set();
+
+      if (Array.isArray(data.projects) && data.projects.length > 0) {
         data.projects.forEach(p => {
           const dist = p.distribution || {};
           if (dist.targetMobile === false) return;
-          if (Array.isArray(dist.targetProfiles) && dist.targetProfiles.length > 0) {
-            if (dist.targetProfiles.includes(deviceProfile)) {
-              allowedProjectIds.add(p.id);
-            }
-          } else {
-            allowedProjectIds.add(p.id);
+          if (deviceProfile !== 'all' && Array.isArray(dist.targetProfiles) && dist.targetProfiles.length > 0) {
+            if (!dist.targetProfiles.includes(deviceProfile)) return;
           }
+          allowedProjects.push(p);
+          allowedProjectIds.add(p.id);
         });
+
+        if (allowedProjects.length > 0) {
+          await Storage.saveProjects(allowedProjects);
+          // 選択中のアクティブプロジェクトが配信対象外となった場合は先頭にフォールバック
+          const currentActive = await Storage.getActiveProjectId();
+          if (!allowedProjectIds.has(currentActive)) {
+            await Storage.setActiveProjectId(allowedProjects[0].id);
+          }
+        }
+
+        // プロファイルに許可されたプロジェクトのカードのみに絞り込み
         remoteCards = remoteCards.filter(c => {
           const pId = c.projectDeckId || 'deck_default';
           return allowedProjectIds.has(pId);
@@ -205,6 +216,11 @@ const SyncManager = {
       // 学習マネージャーに全置換カードを反映
       if (typeof StudyManager !== 'undefined' && StudyManager.onDeckLoaded) {
         await StudyManager.onDeckLoaded(remoteCards);
+      }
+
+      // トップバーのプロジェクトピルを更新
+      if (typeof App !== 'undefined' && App.updateProjectPill) {
+        await App.updateProjectPill();
       }
 
       if (!silent) {

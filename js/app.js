@@ -6,7 +6,7 @@ const App = {
   deferredPrompt: null,
 
   async init() {
-    console.log('[App] MEMORY HACK Mobile v2.0.0 Initializing...');
+    console.log('[App] MEMORY HACK Mobile v2.1.0 Initializing...');
 
     // 0. テーマ初期化 (デフォルトは正式な「ライト」)
     try {
@@ -22,12 +22,13 @@ const App = {
       if (typeof AudioManager !== 'undefined') AudioManager.init();
       if (typeof SyncManager !== 'undefined') await SyncManager.init();
       if (typeof StudyManager !== 'undefined') await StudyManager.init();
+      await this.updateProjectPill();
     } catch (e) {
       console.error('[App] Manager init error:', e);
     }
 
     // 起動トースト表示
-    this.showToast('🚀 MEMORY HACK Mobile v2.0.0 準備完了', 'info');
+    this.showToast('🚀 MEMORY HACK Mobile v2.1.0 準備完了', 'info');
 
     // 2. イベントリスナー登録
     this.bindEvents();
@@ -90,6 +91,99 @@ const App = {
         StudyManager.playCardAudio();
       }
     });
+  },
+
+  // 第0階層（プロジェクト選択）ピルの表示更新
+  async updateProjectPill() {
+    const iconEl = document.getElementById('project-icon');
+    const nameEl = document.getElementById('project-name');
+    if (!iconEl && !nameEl) return;
+
+    try {
+      const activeProj = (typeof Storage !== 'undefined' && Storage.getActiveProject)
+        ? await Storage.getActiveProject()
+        : { name: '哲生英語', icon: '🇬🇧' };
+      if (iconEl) iconEl.innerText = activeProj.icon || '📁';
+      if (nameEl) nameEl.innerText = activeProj.name || '教科';
+    } catch (e) {
+      console.warn('[App] updateProjectPill failed:', e);
+    }
+  },
+
+  // 第0階層プロジェクト選択ボトムシートのオープン
+  async openProjectModal() {
+    await this.renderProjectList();
+    this.openModal('modal-project');
+  },
+
+  // プロジェクト一覧ボトムシートの動的レンダリング
+  async renderProjectList() {
+    const container = document.getElementById('project-list-container');
+    if (!container || typeof Storage === 'undefined') return;
+
+    const projects = await Storage.getProjects();
+    const activeId = await Storage.getActiveProjectId();
+    const allCards = await Storage.getAllCards();
+
+    let html = '';
+    projects.forEach(p => {
+      const isActive = p.id === activeId;
+      const count = (typeof StudyManager !== 'undefined' && StudyManager.filterCardsForProject)
+        ? StudyManager.filterCardsForProject(allCards, p.id, projects).length
+        : allCards.filter(c => (c.projectDeckId || 'deck_default') === p.id).length;
+
+      const desc = p.description || (p.cardType === 'kanji' ? '漢字検定・書き取り特訓' : `${p.targetLanguage || '外国語'} 学習`);
+
+      html += `
+        <div class="project-item ${isActive ? 'active' : ''}" onclick="App.switchProject('${p.id}')">
+          <div class="project-item-left">
+            <span class="project-item-icon">${p.icon || '📁'}</span>
+            <div class="project-item-info">
+              <span class="project-item-name">${this.escapeHtml(p.name)}</span>
+              <span class="project-item-desc">${this.escapeHtml(desc)}</span>
+            </div>
+          </div>
+          <div class="project-item-right">
+            <span class="project-card-badge">${count}枚</span>
+            <button class="btn-project-select ${isActive ? 'selected' : ''}">
+              ${isActive ? '✓ 選択中' : '選択'}
+            </button>
+          </div>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+  },
+
+  // 第0階層プロジェクト切り替え実行
+  async switchProject(projectId) {
+    if (!projectId) return;
+    try {
+      await Storage.setActiveProjectId(projectId);
+      if (typeof StudyManager !== 'undefined' && StudyManager.switchProject) {
+        await StudyManager.switchProject(projectId);
+      }
+      await this.updateProjectPill();
+      this.closeModal('modal-project');
+
+      const activeProj = await Storage.getActiveProject();
+      const count = (typeof StudyManager !== 'undefined' && StudyManager.cards) ? StudyManager.cards.length : 0;
+      this.showToast(`📁 「${activeProj.icon || ''} ${activeProj.name}」を選択しました (${count}枚)`, 'info');
+    } catch (e) {
+      console.error('[App] switchProject error:', e);
+      this.showToast('❌ プロジェクトの切り替えに失敗しました', 'error');
+    }
+  },
+
+  escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   },
 
   // デッキツリー階層選択ボトムシートのオープン
@@ -290,7 +384,7 @@ const App = {
 
   registerServiceWorker() {
     if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
-      navigator.serviceWorker.register('./service-worker.js?v=1.5.2', { updateViaCache: 'none' }).then((reg) => {
+      navigator.serviceWorker.register('./service-worker.js?v=2.1.0', { updateViaCache: 'none' }).then((reg) => {
         console.log('[SW] Registered successfully:', reg.scope);
         // 起動時に毎回バックグラウンドで最新SWの存在を即時チェック
         reg.update().catch(() => {});

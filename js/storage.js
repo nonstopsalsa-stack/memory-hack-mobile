@@ -5,11 +5,24 @@
 const Storage = {
   KEYS: {
     CARDS: 'memory_hack_mobile_cards',
+    PROJECTS: 'memory_hack_mobile_projects',         // 新設: 第0階層プロジェクト一覧
+    ACTIVE_PROJECT: 'memory_hack_mobile_active_proj',// 新設: 現在選択中のプロジェクトID
     SETTINGS: 'memory_hack_mobile_settings',
     DECK_ORDER: 'memory_hack_mobile_deck_order',
     LAST_SYNC: 'memory_hack_mobile_last_sync',
     TODAY_MISTAKES: 'memory_hack_mobile_today_mistakes',
     FILTER_STATE: 'memory_hack_mobile_filter_state'
+  },
+
+  // 初期フォールバック用プロジェクト定義 (第0階層)
+  DEFAULT_PROJECT: {
+    id: 'deck_default',
+    name: '哲生英語',
+    icon: '🇬🇧',
+    targetLanguage: 'en-US',
+    cardType: 'language',
+    isProtected: true,
+    description: 'メイン英語学習プロジェクト'
   },
 
   // 初期フォールバック用サンプルデータ
@@ -178,6 +191,81 @@ const Storage = {
       console.error('Storage.saveDeckOrder failed:', e);
       return false;
     }
+  },
+
+  // =========================================================================
+  // 第0階層 プロジェクト管理 (教科選択)
+  // =========================================================================
+
+  /**
+   * プロジェクト一覧の取得
+   */
+  async getProjects() {
+    try {
+      const data = localStorage.getItem(this.KEYS.PROJECTS);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Storage.getProjects failed:', e);
+    }
+    return [{ ...this.DEFAULT_PROJECT }];
+  },
+
+  /**
+   * プロジェクト一覧の保存
+   */
+  async saveProjects(projects) {
+    try {
+      const list = (Array.isArray(projects) && projects.length > 0) ? projects : [{ ...this.DEFAULT_PROJECT }];
+      localStorage.setItem(this.KEYS.PROJECTS, JSON.stringify(list));
+      return true;
+    } catch (e) {
+      console.error('Storage.saveProjects failed:', e);
+      return false;
+    }
+  },
+
+  /**
+   * アクティブプロジェクトIDの取得
+   */
+  async getActiveProjectId() {
+    try {
+      const id = localStorage.getItem(this.KEYS.ACTIVE_PROJECT);
+      if (id) return id;
+    } catch (e) {
+      console.warn('Storage.getActiveProjectId failed:', e);
+    }
+    const projects = await this.getProjects();
+    return (projects && projects[0] && projects[0].id) || this.DEFAULT_PROJECT.id;
+  },
+
+  /**
+   * アクティブプロジェクトIDの保存
+   */
+  async setActiveProjectId(id) {
+    try {
+      if (id) {
+        localStorage.setItem(this.KEYS.ACTIVE_PROJECT, id);
+        return true;
+      }
+    } catch (e) {
+      console.error('Storage.setActiveProjectId failed:', e);
+    }
+    return false;
+  },
+
+  /**
+   * 現在選択中のアクティブプロジェクトを取得
+   */
+  async getActiveProject() {
+    const projects = await this.getProjects();
+    const activeId = await this.getActiveProjectId();
+    const found = projects.find(p => p.id === activeId);
+    return found || projects[0] || { ...this.DEFAULT_PROJECT };
   },
 
   // =========================================================================
