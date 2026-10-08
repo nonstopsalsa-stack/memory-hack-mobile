@@ -1,4 +1,4 @@
-﻿/**
+/**
  * study.js - MEMORY HACK Mobile 学習マネージャー
  * 
  * 主要機能:
@@ -10,7 +10,7 @@
  */
 
 const StudyManager = {
-  version: 'v2.2.6',
+  version: 'v2.2.7',
   allCards: [],
   projects: [],
   activeProjectId: 'deck_default',
@@ -636,10 +636,10 @@ const StudyManager = {
     const onStr = readings.onReadings.join('、') || '—';
     const kunStr = readings.kunReadings.join('、') || '—';
     q.fullReadingsHtml = `
-      <div class="kanji-readings-grid" style="display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; background: rgba(15, 23, 42, 0.4); padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.9rem; text-align: left; margin: 8px 0;">
-        <span style="color: #f59e0b; font-weight: bold;">【音】</span><span>${escapeHtml(onStr)}</span>
-        <span style="color: #38bdf8; font-weight: bold;">【訓】</span><span>${escapeHtml(kunStr)}</span>
-        ${readings.meaning ? `<span style="color: #10b981; font-weight: bold;">【意】</span><span>${escapeHtml(readings.meaning)}</span>` : ''}
+      <div class="kanji-readings-grid">
+        <span class="reading-tag-on">【音】</span><span>${escapeHtml(onStr)}</span>
+        <span class="reading-tag-kun">【訓】</span><span>${escapeHtml(kunStr)}</span>
+        ${readings.meaning ? `<span class="reading-tag-mean">【意】</span><span>${escapeHtml(readings.meaning)}</span>` : ''}
       </div>
     `;
 
@@ -660,7 +660,7 @@ const StudyManager = {
     switch (pattern) {
       case 'char_to_read': {
         q.targetWord = card.front;
-        q.displayPrompt = `<span class="target-kanji-huge" style="font-size: 4rem; font-weight: 800; color: #f8fafc;">${escapeHtml(card.front)}</span>`;
+        q.displayPrompt = `<span class="target-kanji-huge">${escapeHtml(card.front)}</span>`;
         q.guideText = '🇯🇵 読み・意味を想起';
         q.answerMain = buildReadingsAnswerHtml();
         q.answerSub = q.fullReadingsHtml;
@@ -673,13 +673,13 @@ const StudyManager = {
         const promptReading = selected ? `${selected.label}: ${selected.reading}` : (card.back || '—');
         q.targetWord = card.front;
         q.displayPrompt = `
-          <div style="font-size: 1.6rem; font-weight: bold; color: #38bdf8; text-align: center; padding: 8px 0;">
+          <div class="kanji-prompt-reading">
             ${escapeHtml(promptReading)}
           </div>
-          ${readings.meaning ? `<div style="font-size: 0.95rem; color: #94a3b8; text-align: center; margin-top: 2px;">（${escapeHtml(readings.meaning)}）</div>` : ''}
+          ${readings.meaning ? `<div class="kanji-prompt-meaning">（${escapeHtml(readings.meaning)}）</div>` : ''}
         `;
         q.guideText = '✍️ 漢字一文字を書く';
-        q.answerMain = `<span class="target-kanji-huge" style="font-size: 4rem; font-weight: 800; color: #f8fafc;">${escapeHtml(card.front)}</span>`;
+        q.answerMain = `<span class="target-kanji-huge">${escapeHtml(card.front)}</span>`;
         q.answerSub = q.fullReadingsHtml;
         break;
       }
@@ -688,20 +688,20 @@ const StudyManager = {
         q.targetWord = comp.word;
         q.selectedCompound = comp;
         q.displayPrompt = `
-          <div style="font-size: 2rem; font-weight: bold; color: #f8fafc; letter-spacing: 0.1em; text-align: center; padding: 10px 0;">
+          <div class="kanji-compound-prompt">
             ${escapeHtml(comp.word)}
           </div>
         `;
         q.guideText = '🇯🇵 熟語の読みを答える';
         q.answerMain = `
-          <div style="font-size: 1.8rem; font-weight: bold; color: #38bdf8; text-align: center;">
+          <div class="kanji-compound-reading-answer">
             ${escapeHtml(comp.reading)}
           </div>
-          ${comp.meaning ? `<div style="font-size: 1rem; color: #cbd5e1; margin-top: 6px; text-align: center;">意味: ${escapeHtml(comp.meaning)}</div>` : ''}
+          ${comp.meaning ? `<div class="kanji-compound-meaning">意味: ${escapeHtml(comp.meaning)}</div>` : ''}
         `;
         q.answerSub = `
-          <div style="font-size: 1rem; color: #94a3b8; margin-top: 8px; text-align: center;">
-            対象漢字: <strong style="font-size: 1.3rem; color: #f59e0b;">${escapeHtml(card.front)}</strong>
+          <div class="kanji-target-sub-box">
+            対象漢字: <strong class="kanji-target-sub-char">${escapeHtml(card.front)}</strong>
           </div>
         `;
         break;
@@ -711,20 +711,20 @@ const StudyManager = {
         q.targetWord = comp.word;
         q.selectedCompound = comp;
         q.displayPrompt = `
-          <div style="font-size: 1.8rem; font-weight: bold; color: #38bdf8; text-align: center; padding: 8px 0;">
+          <div class="kanji-compound-reading-prompt">
             ${escapeHtml(comp.reading)}
           </div>
-          ${comp.meaning ? `<div style="font-size: 0.95rem; color: #94a3b8; margin-top: 4px; text-align: center;">（意味: ${escapeHtml(comp.meaning)}）</div>` : ''}
+          ${comp.meaning ? `<div class="kanji-compound-meaning">（意味: ${escapeHtml(comp.meaning)}）</div>` : ''}
         `;
         q.guideText = '✍️ 熟語を書く';
         q.answerMain = `
-          <div style="font-size: 2.2rem; font-weight: bold; color: #f8fafc; letter-spacing: 0.1em; text-align: center;">
+          <div class="kanji-compound-answer">
             ${escapeHtml(comp.word)}
           </div>
         `;
         q.answerSub = `
-          <div style="font-size: 1rem; color: #94a3b8; margin-top: 8px; text-align: center;">
-            読み: <strong style="color: #38bdf8;">${escapeHtml(comp.reading)}</strong>
+          <div class="kanji-compound-sub-info">
+            読み: <strong class="kanji-compound-reading-val">${escapeHtml(comp.reading)}</strong>
             ${comp.meaning ? ` ｜ 意味: ${escapeHtml(comp.meaning)}` : ''}
           </div>
         `;
@@ -733,13 +733,13 @@ const StudyManager = {
       case 'sentence_fill': {
         q.targetWord = sentData ? sentData.target : card.front;
         q.displayPrompt = `
-          <div style="font-size: 1.2rem; line-height: 1.7; text-align: left; padding: 12px 16px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px;">
+          <div class="kanji-sentence-box">
             ${sentData ? sentData.blankSentence : ''}
           </div>
         `;
         q.guideText = '✍️ ［ ］に入る漢字を書く';
         q.answerMain = `
-          <span class="target-kanji-huge" style="font-size: 3rem; font-weight: 800; color: #f8fafc;">${escapeHtml(q.targetWord)}</span>
+          <span class="target-kanji-huge">${escapeHtml(q.targetWord)}</span>
         `;
         const badgeHtml = (sentData && sentData.contextCompound && sentData.contextCompound.explanation)
           ? `<div class="kanji-compound-badge">${escapeHtml(sentData.contextCompound.explanation)}</div>`
@@ -756,7 +756,7 @@ const StudyManager = {
       case 'sentence_read': {
         q.targetWord = sentData ? sentData.target : card.front;
         q.displayPrompt = `
-          <div style="font-size: 1.2rem; line-height: 1.7; text-align: left; padding: 12px 16px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px;">
+          <div class="kanji-sentence-box">
             ${sentData ? sentData.highlightSentence : ''}
           </div>
         `;
@@ -773,10 +773,10 @@ const StudyManager = {
         }
 
         q.answerMain = `
-          <div style="font-size: 1.8rem; font-weight: bold; color: #38bdf8; text-align: center;">
+          <div class="kanji-sentence-reading-answer">
             ${escapeHtml(matchedReading)}
           </div>
-          <div style="font-size: 1.1rem; color: #f8fafc; margin-top: 4px; text-align: center;">
+          <div class="kanji-sentence-target-char">
             （${escapeHtml(q.targetWord)}）
           </div>
         `;
@@ -790,7 +790,7 @@ const StudyManager = {
       }
       default: {
         q.targetWord = card.front;
-        q.displayPrompt = `<span class="target-kanji-huge" style="font-size: 4rem; font-weight: 800; color: #f8fafc;">${escapeHtml(card.front)}</span>`;
+        q.displayPrompt = `<span class="target-kanji-huge">${escapeHtml(card.front)}</span>`;
         q.guideText = '🇯🇵 読み・意味を想起';
         q.answerMain = buildReadingsAnswerHtml();
         q.answerSub = q.fullReadingsHtml;
@@ -814,12 +814,15 @@ const StudyManager = {
     sessionStartTime: null
   },
 
-  // スワイプ操作用座標追跡
+  // スワイプ操作用座標追跡 & スクロール誤反転防止ガード
   touchState: {
     startX: 0,
     startY: 0,
     currentX: 0,
+    currentY: 0,
     isSwiping: false,
+    hasMoved: false,
+    lastMoveTime: 0,
     startTime: 0
   },
 
@@ -1275,9 +1278,18 @@ const StudyManager = {
 
   /**
    * カードのめくり（表 ➔ 裏）
+   * @param {boolean} [fromButton=false] ボタン押下による明示的反転フラグ
    */
-  flipCard() {
+  flipCard(fromButton = false) {
     if (this.isFlipped) return;
+
+    // スクロールまたはスワイプ操作直後（350ms以内）はタップ誤爆（誤FLIP）をガード
+    if (!fromButton) {
+      if (this.touchState.hasMoved || (this.touchState.lastMoveTime && Date.now() - this.touchState.lastMoveTime < 350)) {
+        return;
+      }
+    }
+
     this.isFlipped = true;
     this.showAdvice = true;
     this.renderCard();
@@ -1437,28 +1449,30 @@ const StudyManager = {
       this.currentKanjiQuestion = kq;
       if (!this.isFlipped) {
         questionHtml = `
-          <div class="card-prompt-container" style="text-align: center; padding: 12px 4px;">
-            <div class="card-prompt-target" style="margin: 10px 0;">
+          <div class="card-prompt-container">
+            <div class="card-prompt-target">
               ${kq.displayPrompt}
             </div>
-            <div class="card-target-guide" style="color: #38bdf8; font-size: 1.05rem; font-weight: bold; margin-top: 12px;">
+            <div class="card-target-guide">
               ${kq.guideText}
             </div>
           </div>
         `;
       } else {
         answerHtml = `
-          <div class="card-answer-block" style="text-align: center; padding: 10px 4px;">
-            <div class="card-answer-badge" style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">🎯 正解</div>
-            <div class="card-answer-main" style="margin-bottom: 8px;">
+          <div class="card-answer-block">
+            <div class="card-answer-badge">🎯 正解</div>
+            <div class="card-answer-main">
               ${kq.answerMain}
             </div>
             ${kq.answerSub}
           </div>
           ${card.advice ? `
-            <div class="advice-accordion expanded" style="margin-top: 12px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 14px; text-align: left;">
-              <div class="advice-header" style="font-size: 0.9rem; font-weight: bold; color: #f59e0b; margin-bottom: 4px;">💡 攻略アドバイス・AI解説</div>
-              <div class="advice-body" style="font-size: 0.85rem; line-height: 1.5; color: #e2e8f0; white-space: pre-wrap;">${escapeHtml(card.advice)}</div>
+            <div class="advice-accordion expanded">
+              <div class="advice-header">
+                <span class="advice-title">💡 攻略アドバイス・AI解説</span>
+              </div>
+              <div class="advice-body">${escapeHtml(card.advice)}</div>
             </div>
           ` : ''}
         `;
@@ -1481,9 +1495,9 @@ const StudyManager = {
           const fontClass = this.getFontScaleClass(text);
           const imgHtml = this.renderImageHtml(card.backImage);
           const cleanText = String(text).split(/\r?\n/).map(l => l.trim()).join('\n');
-          const textHtml = cleanText.trim() ? `<div class="card-prompt-text ${fontClass}" style="margin: 10px 0;"><span>${escapeHtml(cleanText)}</span></div>` : '';
+          const textHtml = cleanText.trim() ? `<div class="card-prompt-text ${fontClass}"><span>${escapeHtml(cleanText)}</span></div>` : '';
           questionHtml = `
-            <div class="card-prompt-container" style="text-align: center; padding: 12px 4px;">
+            <div class="card-prompt-container">
               ${textHtml}
               ${imgHtml}
             </div>
@@ -1493,7 +1507,7 @@ const StudyManager = {
           const fontClass = this.getFontScaleClass(text);
           const imgHtml = this.renderImageHtml(card.backImage);
           questionHtml = `
-            <div class="card-prompt-container" style="text-align: center; padding: 12px 4px;">
+            <div class="card-prompt-container">
               <div class="card-prompt-text ja ${fontClass}">${escapeHtml(text)}</div>
               ${imgHtml}
             </div>
@@ -1506,12 +1520,12 @@ const StudyManager = {
           const imgHtml = this.renderImageHtml(card.frontImage);
           const hasVoice = (card.voiceType && card.voiceType !== 'none') || pattern === 'en_to_ja';
           const textHtml = cleanText.trim() ? `
-            <div class="card-prompt-text ${fontClass}" style="margin: 10px 0;">
+            <div class="card-prompt-text ${fontClass}">
               <span>${escapeHtml(cleanText)}</span>
-              ${hasVoice ? `<button class="speaker-btn" style="margin-left: 8px; vertical-align: middle;" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く">🔊</button>` : ''}
+              ${hasVoice ? `<button class="speaker-btn" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く">🔊</button>` : ''}
             </div>` : '';
           questionHtml = `
-            <div class="card-prompt-container" style="text-align: center; padding: 12px 4px;">
+            <div class="card-prompt-container">
               ${textHtml}
               ${imgHtml}
             </div>
@@ -1526,18 +1540,20 @@ const StudyManager = {
           const imgHtml = this.renderImageHtml(card.frontImage);
           const hasVoice = (card.voiceType && card.voiceType !== 'none');
           answerHtml = `
-            <div class="card-answer-block" style="text-align: center; padding: 10px 4px;">
-              <div class="card-answer-badge" style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">🎯 解答 (問題)</div>
+            <div class="card-answer-block">
+              <div class="card-answer-badge">🎯 解答 (問題)</div>
               <div class="card-answer-main ${fontClass}">
                 <span>${escapeHtml(ansText)}</span>
-                ${hasVoice ? `<button class="speaker-btn" style="margin-left: 8px; vertical-align: middle;" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く">🔊</button>` : ''}
+                ${hasVoice ? `<button class="speaker-btn" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く">🔊</button>` : ''}
               </div>
               ${imgHtml}
             </div>
             ${card.advice ? `
-              <div class="advice-accordion expanded" style="margin-top: 12px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 14px; text-align: left;">
-                <div class="advice-header" style="font-size: 0.9rem; font-weight: bold; color: #f59e0b; margin-bottom: 4px;">💡 解説・補足メモ</div>
-                <div class="advice-body" style="font-size: 0.85rem; line-height: 1.5; color: #e2e8f0; white-space: pre-wrap;">${escapeHtml(card.advice)}</div>
+              <div class="advice-accordion expanded">
+                <div class="advice-header">
+                  <span class="advice-title">💡 解説・補足メモ</span>
+                </div>
+                <div class="advice-body">${escapeHtml(card.advice)}</div>
               </div>
             ` : ''}
           `;
@@ -1629,7 +1645,7 @@ const StudyManager = {
 
     container.innerHTML = `
       <div class="study-card-wrapper" id="study-card-wrapper">
-        <div class="study-card ${this.isFlipped ? 'is-flipped' : ''}" onclick="StudyManager.flipCard();">
+        <div class="study-card ${this.isFlipped ? 'is-flipped' : ''}" onclick="StudyManager.flipCard(false);">
           <div class="card-top-info">
             <div class="quest-badge ${patternInfo.badgeClass}">
               ${patternInfo.badgeText}
@@ -1672,6 +1688,17 @@ const StudyManager = {
 
     // 操作ボタンの更新
     this.updateBottomActionButtons();
+
+    // カード本文（.card-body）スクロール時の誤FLIP防止リスナー登録
+    setTimeout(() => {
+      const cardBody = document.querySelector('.card-body');
+      if (cardBody) {
+        cardBody.addEventListener('scroll', () => {
+          this.touchState.hasMoved = true;
+          this.touchState.lastMoveTime = Date.now();
+        }, { passive: true });
+      }
+    }, 0);
   },
 
   toggleAdvice() {
@@ -1686,7 +1713,7 @@ const StudyManager = {
     if (!this.isFlipped) {
       // めくる前: 巨大な「答えを見る」ボタン
       actionContainer.innerHTML = `
-        <button class="btn-action btn-flip" onclick="StudyManager.flipCard();">
+        <button class="btn-action btn-flip" onclick="StudyManager.flipCard(true);">
           <span class="action-icon">👀</span> 答えを見る (FLIP)
         </button>
       `;
@@ -1843,8 +1870,10 @@ const StudyManager = {
       this.touchState.startX = touch.clientX;
       this.touchState.startY = touch.clientY;
       this.touchState.currentX = touch.clientX;
+      this.touchState.currentY = touch.clientY;
       this.touchState.startTime = Date.now();
       this.touchState.isSwiping = false;
+      this.touchState.hasMoved = false;
     }, { passive: true });
 
     stage.addEventListener('touchmove', (e) => {
@@ -1852,6 +1881,12 @@ const StudyManager = {
       const touch = e.touches[0];
       const deltaX = touch.clientX - this.touchState.startX;
       const deltaY = touch.clientY - this.touchState.startY;
+
+      // わずかな指の移動（縦スクロール・横スワイプ）でも検知し、誤FLIPをブロック
+      if (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8) {
+        this.touchState.hasMoved = true;
+        this.touchState.lastMoveTime = Date.now();
+      }
 
       // 水平方向のスワイプが垂直スクロールよりも優位な場合
       if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 15) {
@@ -1876,14 +1911,25 @@ const StudyManager = {
         cardWrapper.style.transition = 'transform 0.2s ease';
       }
 
-      if (!this.touchState.isSwiping) return;
+      if (this.touchState.hasMoved) {
+        this.touchState.lastMoveTime = Date.now();
+      }
+
+      if (!this.touchState.isSwiping) {
+        setTimeout(() => {
+          this.touchState.hasMoved = false;
+        }, 350);
+        return;
+      }
 
       const deltaX = this.touchState.currentX - this.touchState.startX;
       const duration = Date.now() - this.touchState.startTime;
 
       this.touchState.isSwiping = false;
       this.touchState.startX = 0;
+      this.touchState.startY = 0;
       this.touchState.currentX = 0;
+      this.touchState.currentY = 0;
 
       // スワイプ閾値: 50px以上かつ短時間でのフリック
       if (Math.abs(deltaX) > 50 && duration < 600) {
@@ -1895,6 +1941,9 @@ const StudyManager = {
           this.goToPrevCardWithoutGrading();
         }
       }
+      setTimeout(() => {
+        this.touchState.hasMoved = false;
+      }, 350);
     }, { passive: true });
   }
 };

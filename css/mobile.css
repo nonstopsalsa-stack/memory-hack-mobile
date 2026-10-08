@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    MEMORY HACK MOBILE - Dark Cyber & Blox Fruits Theme
    Optimized for Android / Mobile Touch Ergonomics
    ========================================================================== */
@@ -504,10 +504,44 @@ html, body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   text-align: center;
   width: 100%;
+}
+
+.card-body > .card-prompt-container,
+.card-body > .card-answer-block,
+.card-body > .audio-prompt-box {
+  margin: auto 0;
+}
+
+.card-prompt-container {
+  width: 100%;
+  text-align: center;
+  padding: 12px 4px;
+  box-sizing: border-box;
+}
+
+.card-prompt-target {
+  margin: 10px 0;
+  width: 100%;
+  text-align: center;
+}
+
+.card-target-guide {
+  color: #38bdf8;
+  font-size: 1.05rem;
+  font-weight: bold;
+  margin-top: 12px;
+  text-align: center;
+}
+
+.card-answer-badge {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  text-align: center;
 }
 
 /* 繝｢繝舌う繝ｫ迚亥・鬘碁擇繝ｻ隗｣遲秘擇繝・く繧ｹ繝医・謾ｹ陦後♀繧医・繧ｹ繝壹・繧ｹ菫晄戟 (v2.2.4) */
@@ -865,7 +899,7 @@ html, body {
 .pattern-label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #f1f5f9;
+  color: var(--color-text-main);
 }
 
 .modal-actions-bar {
@@ -2077,6 +2111,91 @@ html, body {
   border: none !important;
 }
 
+[data-theme="muichiro"] .pattern-label {
+  color: #134e4a !important;
+}
+
+/* デッキ選択モーダル：ジャンル別階層ツリー (無一郎テーマ) */
+[data-theme="muichiro"] .hierarchy-tree-item.all-item {
+  background: linear-gradient(135deg, #f0fdfa 0%, #ffffff 100%) !important;
+  border: 1px solid #99f6e4 !important;
+}
+
+[data-theme="muichiro"] .hierarchy-tier1-group {
+  background: #ffffff !important;
+  border: 1px solid #ccfbf1 !important;
+}
+
+[data-theme="muichiro"] .hierarchy-tier1-group.open {
+  border-color: #14b8a6 !important;
+}
+
+[data-theme="muichiro"] .hierarchy-tier1-header {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+[data-theme="muichiro"] .hierarchy-tier1-header.active {
+  background: #f0fdfa !important;
+  border-left: 3px solid #0d9488 !important;
+}
+
+[data-theme="muichiro"] .accordion-arrow {
+  color: #0f766e !important;
+}
+
+[data-theme="muichiro"] .hierarchy-name {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="muichiro"] .hierarchy-count-badge {
+  background: #ccfbf1 !important;
+  color: #0f766e !important;
+  border: 1px solid #99f6e4 !important;
+}
+
+[data-theme="muichiro"] .btn-tree-select,
+[data-theme="muichiro"] .btn-tier-select {
+  background: #f0fdfa !important;
+  border: 1px solid #99f6e4 !important;
+  color: #0f766e !important;
+}
+
+[data-theme="muichiro"] .btn-tree-select.selected,
+[data-theme="muichiro"] .btn-tier-select.selected {
+  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%) !important;
+  color: #ffffff !important;
+  border-color: #0d9488 !important;
+}
+
+[data-theme="muichiro"] .hierarchy-tier2-container {
+  background: #f8fafc !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="muichiro"] .hierarchy-tier2-header {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="muichiro"] .hierarchy-tier2-header.active {
+  background: #f0fdfa !important;
+  border-left: 3px solid #0d9488 !important;
+}
+
+[data-theme="muichiro"] .hierarchy-tier3-item {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="muichiro"] .hierarchy-tier3-item.active {
+  background: #f0fdfa !important;
+  border-left: 2px solid #0d9488 !important;
+}
+
 /* ==========================================================================
    大人向け正式「ライト」テーマ（シンプル・洗練・都会的冷涼感）
    ライトテーマとの明確な違い:
@@ -2422,6 +2541,16 @@ html, body {
 /* チェックボックス項目 */
 [data-theme="light"] .form-checkbox-label {
   color: #1e293b !important;
+}
+
+[data-theme="light"] .pattern-item {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0b132b !important;
+}
+
+[data-theme="light"] .pattern-label {
+  color: #0b132b !important;
 }
 
 [data-theme="light"] .btn-modal-action {
@@ -2863,7 +2992,8 @@ html, body {
 /* 5. カード内長文スクロール保護 */
 .card-body {
   overflow-y: auto !important;
-  max-height: calc(100dvh - 280px) !important;
+  max-height: calc(100dvh - 350px) !important;
+  scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -3041,4 +3171,232 @@ html, body {
   text-align: center !important;
   margin-left: auto !important;
   margin-right: auto !important;
+}
+
+/* ========================================================
+   漢字学習カード スタイル定義 (全テーマ共通ベース)
+   ======================================================== */
+.target-kanji-huge {
+  font-size: clamp(3.2rem, 12vw, 4.2rem);
+  font-weight: 800;
+  color: #f8fafc;
+  line-height: 1.15;
+  text-align: center;
+  display: inline-block;
+  user-select: none;
+}
+
+.kanji-readings-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 12px;
+  background: rgba(15, 23, 42, 0.4);
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.92rem;
+  text-align: left;
+  margin: 8px 0;
+  color: #e2e8f0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.reading-tag-on {
+  color: #f59e0b;
+  font-weight: bold;
+}
+
+.reading-tag-kun {
+  color: #38bdf8;
+  font-weight: bold;
+}
+
+.reading-tag-mean {
+  color: #10b981;
+  font-weight: bold;
+}
+
+.kanji-sentence-box {
+  font-size: 1.2rem;
+  line-height: 1.7;
+  text-align: left;
+  padding: 12px 16px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: #f8fafc;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.kanji-prompt-reading,
+.kanji-compound-reading-prompt {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #38bdf8;
+  text-align: center;
+  padding: 8px 0;
+}
+
+.kanji-prompt-meaning,
+.kanji-compound-meaning {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  text-align: center;
+  margin-top: 2px;
+}
+
+.kanji-compound-prompt,
+.kanji-compound-answer {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: 0.08em;
+  text-align: center;
+  padding: 8px 0;
+}
+
+.kanji-compound-reading-answer,
+.kanji-sentence-reading-answer {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #38bdf8;
+  text-align: center;
+}
+
+.kanji-target-sub-box,
+.kanji-compound-sub-info {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.kanji-target-sub-char {
+  font-size: 1.25rem;
+  color: #f59e0b;
+  font-weight: bold;
+}
+
+.kanji-compound-reading-val {
+  color: #38bdf8;
+  font-weight: bold;
+}
+
+.kanji-sentence-target-char {
+  font-size: 1.1rem;
+  color: #f8fafc;
+  margin-top: 4px;
+  text-align: center;
+}
+
+/* 無一郎テーマ: 漢字カード高視認性スタイル (白飛び防止・濃色スレート) */
+[data-theme="muichiro"] .target-kanji-huge {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+[data-theme="muichiro"] .kanji-readings-grid {
+  background: #ffffff !important;
+  border: 1.5px solid #ccfbf1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.08) !important;
+}
+
+[data-theme="muichiro"] .kanji-sentence-box {
+  background: #ffffff !important;
+  border: 1.5px solid #5eead4 !important;
+  color: #0f172a !important;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.08) !important;
+}
+
+[data-theme="muichiro"] .kanji-prompt-reading,
+[data-theme="muichiro"] .kanji-compound-reading-prompt,
+[data-theme="muichiro"] .kanji-compound-reading-answer,
+[data-theme="muichiro"] .kanji-sentence-reading-answer {
+  color: #0d9488 !important;
+  text-shadow: none !important;
+}
+
+[data-theme="muichiro"] .kanji-prompt-meaning,
+[data-theme="muichiro"] .kanji-compound-meaning,
+[data-theme="muichiro"] .kanji-target-sub-box,
+[data-theme="muichiro"] .kanji-compound-sub-info {
+  color: #64748b !important;
+}
+
+[data-theme="muichiro"] .kanji-compound-prompt,
+[data-theme="muichiro"] .kanji-compound-answer {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+[data-theme="muichiro"] .kanji-sentence-target-char {
+  color: #0f172a !important;
+}
+
+[data-theme="muichiro"] .kanji-compound-reading-val {
+  color: #0d9488 !important;
+}
+
+[data-theme="muichiro"] .reading-tag-on {
+  color: #d97706 !important;
+}
+
+[data-theme="muichiro"] .reading-tag-kun {
+  color: #0d9488 !important;
+}
+
+[data-theme="muichiro"] .reading-tag-mean {
+  color: #059669 !important;
+}
+
+/* ライトテーマ: 漢字カード高視認性スタイル */
+[data-theme="light"] .target-kanji-huge {
+  color: #0b132b !important;
+  text-shadow: none !important;
+}
+
+[data-theme="light"] .kanji-readings-grid {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0b132b !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .kanji-sentence-box {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0b132b !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .kanji-prompt-reading,
+[data-theme="light"] .kanji-compound-reading-prompt,
+[data-theme="light"] .kanji-compound-reading-answer,
+[data-theme="light"] .kanji-sentence-reading-answer {
+  color: #4f46e5 !important;
+  text-shadow: none !important;
+}
+
+[data-theme="light"] .kanji-prompt-meaning,
+[data-theme="light"] .kanji-compound-meaning,
+[data-theme="light"] .kanji-target-sub-box,
+[data-theme="light"] .kanji-compound-sub-info {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .kanji-compound-prompt,
+[data-theme="light"] .kanji-compound-answer {
+  color: #0b132b !important;
+  text-shadow: none !important;
+}
+
+[data-theme="light"] .kanji-sentence-target-char {
+  color: #0b132b !important;
+}
+
+[data-theme="light"] .kanji-compound-reading-val {
+  color: #4f46e5 !important;
 }
