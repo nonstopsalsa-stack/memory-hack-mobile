@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    MEMORY HACK MOBILE - Dark Cyber & Blox Fruits Theme
    Optimized for Android / Mobile Touch Ergonomics
    ========================================================================== */
@@ -91,6 +91,10 @@ html, body {
   display: none;
   width: 22px;
   height: 22px;
+}
+
+.brand-logo .logo-muichiro {
+  display: none;
 }
 
 .brand-title {
@@ -1671,129 +1675,392 @@ html, body {
    MUICHIRO THEME (霞の呼吸 / 時透無一郎)
    ========================================================================== */
 [data-theme="muichiro"] {
-  --bg-main: #070d12;
-  --bg-card: rgba(13, 26, 36, 0.9);
-  --bg-card-flipped: rgba(15, 30, 42, 0.95);
-  --bg-header: #070d12;
-  --border-color: rgba(45, 212, 191, 0.28);
-  --border-focus: #2dd4bf;
+  --bg-main: #6ee7b7;
+  --bg-card: #faf8f5;
+  --bg-card-flipped: #fbf9f6;
+  --bg-header: #133b46;
+  --border-color: #14b8a6;
+  --border-focus: #0d9488;
 
-  --color-gold: #2dd4bf;
-  --color-gold-glow: rgba(45, 212, 191, 0.35);
-  --color-cyan: #5eead4;
-  --color-cyan-glow: rgba(94, 234, 212, 0.35);
-  --color-green: #14b8a6;
+  --color-gold: #0d9488;
+  --color-gold-glow: rgba(13, 148, 136, 0.25);
+  --color-cyan: #2dd4bf;
+  --color-cyan-glow: rgba(45, 212, 191, 0.35);
+  --color-green: #0d9488;
   --color-red: #f43f5e;
-  --color-text-main: #f0fdfa;
-  --color-text-sub: #a5f3fc;
-  --color-text-muted: #94a3b8;
+  --color-text-main: #0f172a;
+  --color-text-sub: #134e4a;
+  --color-text-muted: #64748b;
 }
 
+[data-theme="muichiro"] html,
+[data-theme="muichiro"] body {
+  background: linear-gradient(135deg, #a7f3d0 0%, #6ee7b7 35%, #5eead4 70%, #99f6e4 100%) !important;
+  background-attachment: fixed !important;
+  color: #0f172a !important;
+}
+
+/* 蜥碁｢ｨ髴樣峇・医Α繧ｹ繝医け繝ｩ繧ｦ繝会ｼ峨・閭梧勹陬・｣ｾ */
+[data-theme="muichiro"] body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background-image: 
+    radial-gradient(circle at 8% 22%, rgba(255, 255, 255, 0.5) 0, rgba(255, 255, 255, 0) 100px),
+    radial-gradient(circle at 92% 18%, rgba(255, 255, 255, 0.45) 0, rgba(255, 255, 255, 0) 110px),
+    radial-gradient(circle at 14% 78%, rgba(255, 255, 255, 0.4) 0, rgba(255, 255, 255, 0) 90px),
+    radial-gradient(circle at 86% 82%, rgba(255, 255, 255, 0.45) 0, rgba(255, 255, 255, 0) 120px),
+    radial-gradient(circle at 50% 92%, rgba(255, 255, 255, 0.35) 0, rgba(255, 255, 255, 0) 130px);
+  z-index: 0;
+}
+
+/* 繝医ャ繝励ヰ繝ｼ・域ｷｱ邱代ユ繧｣繝ｼ繝ｫ #133b46・・*/
 [data-theme="muichiro"] .top-bar {
-  background: #070d12 !important;
-  border-bottom: 1px solid rgba(45, 212, 191, 0.25) !important;
+  background: #133b46 !important;
+  border-bottom: 2px solid #0d9488 !important;
+  box-shadow: 0 4px 16px rgba(19, 59, 70, 0.25) !important;
+  color: #ffffff !important;
 }
 
 [data-theme="muichiro"] .brand-title {
   background: none !important;
-  -webkit-text-fill-color: #2dd4bf !important;
-  color: #2dd4bf !important;
-  text-shadow: 0 0 10px rgba(45, 212, 191, 0.4) !important;
+  -webkit-text-fill-color: #5eead4 !important;
+  color: #5eead4 !important;
+  text-shadow: 0 0 10px rgba(94, 234, 212, 0.45) !important;
+  font-weight: 800 !important;
 }
 
 [data-theme="muichiro"] .brand-ver-badge {
-  background: rgba(45, 212, 191, 0.15) !important;
-  color: #2dd4bf !important;
-  border-color: rgba(45, 212, 191, 0.3) !important;
+  background: rgba(45, 212, 191, 0.2) !important;
+  color: #5eead4 !important;
+  border: 1px solid #2dd4bf !important;
 }
 
-[data-theme="muichiro"] .card-prompt-text.en {
-  color: #f0fdfa !important;
-  text-shadow: 0 0 10px rgba(45, 212, 191, 0.3) !important;
+/* 繝悶Λ繝ｳ繝峨Ο繧ｴ: 辟｡荳驛弱ユ繝ｼ繝樊凾縺ｮ縺ｿ logo-muichiro (28x28px蜀・ｽ｢縲√ち繝ｼ繧ｳ繧､繧ｺ譫) 繧定｡ｨ遉ｺ縲∝殴繝ｻ遏･諤ｧ繝ｭ繧ｴ縺ｯ髱櫁｡ｨ遉ｺ */
+[data-theme="muichiro"] .brand-logo {
+  filter: drop-shadow(0 2px 6px rgba(19, 59, 70, 0.25)) !important;
+}
+[data-theme="muichiro"] .brand-logo .logo-sword {
+  display: none !important;
+}
+[data-theme="muichiro"] .brand-logo .logo-intellect {
+  display: none !important;
+}
+[data-theme="muichiro"] .brand-logo .logo-muichiro {
+  display: inline-block !important;
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  border: 2px solid #2dd4bf !important;
+  object-fit: cover !important;
+  object-position: 50% 14% !important;
+  box-shadow: 0 0 8px rgba(45, 212, 191, 0.5) !important;
+  vertical-align: middle !important;
 }
 
-[data-theme="muichiro"] .flashcard-card {
-  background: linear-gradient(145deg, rgba(13, 26, 36, 0.92) 0%, rgba(7, 13, 18, 0.96) 100%) !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(45, 212, 191, 0.15) !important;
-  border: 1.5px solid rgba(45, 212, 191, 0.3) !important;
-  backdrop-filter: blur(12px) !important;
+/* 繝医ャ繝励い繧ｯ繧ｷ繝ｧ繝ｳ (蜷梧悄繝ｻ險ｭ螳壹・繧ｿ繝ｳ) */
+[data-theme="muichiro"] .sync-btn,
+[data-theme="muichiro"] .icon-btn {
+  background: rgba(20, 184, 166, 0.25) !important;
+  border: 1px solid rgba(45, 212, 191, 0.5) !important;
+  color: #ccfbf1 !important;
 }
 
+[data-theme="muichiro"] .sync-btn:hover,
+[data-theme="muichiro"] .icon-btn:hover {
+  background: rgba(20, 184, 166, 0.45) !important;
+  border-color: #5eead4 !important;
+  color: #ffffff !important;
+}
+
+/* 繧ｳ繝ｳ繝医Ο繝ｼ繝ｫ蟶ｯ: 逋ｽ閭梧勹繝√ャ繝暦ｼ九ち繝ｼ繧ｳ繧､繧ｺ譫 */
 [data-theme="muichiro"] .control-strip {
-  background: #070d12 !important;
-  border-bottom: 1px solid rgba(45, 212, 191, 0.2) !important;
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-bottom: 1px solid rgba(20, 184, 166, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.06) !important;
 }
 
 [data-theme="muichiro"] .deck-chip-btn,
 [data-theme="muichiro"] .mobile-select,
 [data-theme="muichiro"] .pattern-chip-btn {
-  background: rgba(13, 26, 36, 0.8) !important;
-  color: #f0fdfa !important;
-  border-color: rgba(45, 212, 191, 0.25) !important;
+  background: #ffffff !important;
+  color: #134e4a !important;
+  border: 1.5px solid #14b8a6 !important;
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.08) !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="muichiro"] .deck-label-text,
+[data-theme="muichiro"] .dropdown-caret,
+[data-theme="muichiro"] #pattern-btn-count {
+  color: #134e4a !important;
+}
+
+[data-theme="muichiro"] .session-stats-info {
+  color: #134e4a !important;
+}
+
+[data-theme="muichiro"] .session-stats-info .stat-acc {
+  color: #0d9488 !important;
 }
 
 [data-theme="muichiro"] .type-filter-group {
-  background: rgba(13, 26, 36, 0.8) !important;
-  border-color: rgba(45, 212, 191, 0.25) !important;
+  background: #ffffff !important;
+  border: 1.5px solid #14b8a6 !important;
 }
 
 [data-theme="muichiro"] .type-filter-btn {
-  color: #94a3b8 !important;
+  color: #64748b !important;
 }
 
 [data-theme="muichiro"] .type-filter-btn.active {
-  background: rgba(45, 212, 191, 0.25) !important;
-  color: #5eead4 !important;
-  box-shadow: 0 0 10px rgba(45, 212, 191, 0.3) !important;
+  background: #14b8a6 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 8px rgba(20, 184, 166, 0.4) !important;
 }
 
+/* 繝励Ο繧ｰ繝ｬ繧ｹ繝舌・ */
+[data-theme="muichiro"] .progress-container {
+  background: rgba(20, 184, 166, 0.2) !important;
+}
+
+[data-theme="muichiro"] .progress-bar-fill {
+  background: linear-gradient(90deg, #0d9488 0%, #2dd4bf 100%) !important;
+}
+
+/* 證苓ｨ倥き繝ｼ繝画悽菴・ 逕滓・繧願牡・・faf8f5・峨∫ｴｰ繧√・譛ｨ譫隱ｿ繝懊・繝繝ｼ・・.5px solid #8b5a2b・・*/
+[data-theme="muichiro"] .study-card,
+[data-theme="muichiro"] .flashcard-card {
+  background: #faf8f5 !important;
+  border: 2.5px solid #8b5a2b !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14), inset 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  color: #0f172a !important;
+}
+
+[data-theme="muichiro"] .study-card.is-flipped {
+  background: #fbf9f6 !important;
+  border-color: #8b5a2b !important;
+}
+
+[data-theme="muichiro"] .study-card .card-top-info {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 8px;
+}
+
+[data-theme="muichiro"] .quest-badge {
+  background: rgba(13, 148, 136, 0.12) !important;
+  color: #0f766e !important;
+  border: 1px solid rgba(20, 184, 166, 0.3) !important;
+}
+
+[data-theme="muichiro"] .deck-tag {
+  color: #64748b !important;
+}
+
+/* 繝・く繧ｹ繝郁ｦ冶ｪ肴ｧ: 雉ｪ蝠乗枚繝ｻ隗｣遲疲枚蟄励・貍｢蟄励ラ繝ｪ繝ｫ譁・ｭ礼ｭ峨ｒ逋ｽ鬟帙・縺励↑縺・ｿ・牡繧ｹ繝ｬ繝ｼ繝茨ｼ・0f172a・峨↓險ｭ螳・*/
+[data-theme="muichiro"] .card-prompt-text,
+[data-theme="muichiro"] .card-prompt-text.en,
+[data-theme="muichiro"] .card-prompt-text.ja,
+[data-theme="muichiro"] .card-prompt-target {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+  text-shadow: none !important;
+}
+
+[data-theme="muichiro"] .card-answer-main,
+[data-theme="muichiro"] .card-answer-main.en,
+[data-theme="muichiro"] .card-answer-main.ja {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+  text-shadow: none !important;
+}
+
+[data-theme="muichiro"] .card-answer-sub {
+  color: #334155 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="muichiro"] .card-target-guide {
+  color: #0f766e !important;
+}
+
+[data-theme="muichiro"] .card-answer-badge {
+  color: #64748b !important;
+}
+
+[data-theme="muichiro"] .card-flip-hint {
+  color: #64748b !important;
+}
+
+/* 萓区枚繝懊ャ繧ｯ繧ｹ */
+[data-theme="muichiro"] .example-box {
+  background: #ffffff !important;
+  border: 1px solid #99f6e4 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.08) !important;
+}
+
+[data-theme="muichiro"] .example-badge {
+  background: #ccfbf1 !important;
+  color: #0f766e !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="muichiro"] .example-en {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="muichiro"] .example-ja {
+  color: #334155 !important;
+}
+
+/* 隗｣隱ｬ繝ｻ繧｢繝峨ヰ繧､繧ｹ譫 */
+[data-theme="muichiro"] .advice-accordion {
+  background: #ffffff !important;
+  border: 1.5px solid #5eead4 !important;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.08) !important;
+}
+
+[data-theme="muichiro"] .advice-title,
+[data-theme="muichiro"] .advice-arrow,
+[data-theme="muichiro"] .advice-header {
+  color: #0d9488 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="muichiro"] .advice-body {
+  color: #1e293b !important;
+  border-top: 1px dashed #cbd5e1 !important;
+}
+
+/* 髻ｳ螢ｰ繧ｹ繝斐・繧ｫ繝ｼ繝懊ち繝ｳ */
+[data-theme="muichiro"] .speaker-btn,
+[data-theme="muichiro"] .example-speaker-btn {
+  background: #ffffff !important;
+  border: 1px solid #14b8a6 !important;
+  color: #0d9488 !important;
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.15) !important;
+}
+
+/* 繝代Λ繝代Λ繧√￥繧翫リ繝薙ご繝ｼ繧ｷ繝ｧ繝ｳ繝舌・ */
+[data-theme="muichiro"] .btn-browse-nav {
+  background: #ffffff !important;
+  color: #134e4a !important;
+  border: 1.5px solid #14b8a6 !important;
+}
+
+/* 謫堺ｽ懊・繧ｿ繝ｳ蟶ｯ・・ottom Action Bar・・*/
+[data-theme="muichiro"] .bottom-bar {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-top: 1px solid rgba(20, 184, 166, 0.25) !important;
+  box-shadow: 0 -4px 16px rgba(13, 148, 136, 0.08) !important;
+}
+
+/* FLIP繝懊ち繝ｳ・・btn-action.btn-flip・・ 魄ｮ繧・°縺ｪ髴槭げ繝ｪ繝ｼ繝ｳ・・0d9488縲・14b8a6・・*/
+[data-theme="muichiro"] .btn-action.btn-flip,
 [data-theme="muichiro"] .btn-action.action-flip {
   background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%) !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 16px rgba(13, 148, 136, 0.4) !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(13, 148, 136, 0.45) !important;
+  text-shadow: none !important;
 }
 
+[data-theme="muichiro"] .btn-action.btn-flip:active,
+[data-theme="muichiro"] .btn-action.action-flip:active {
+  background: #0f766e !important;
+  transform: scale(0.98) !important;
+}
+
+[data-theme="muichiro"] .btn-action.btn-flip .action-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-radius: 50% !important;
+  width: 28px !important;
+  height: 28px !important;
+  margin-right: 8px !important;
+  vertical-align: middle !important;
+}
+
+/* 荳肴ｭ｣隗｣繝懊ち繝ｳ */
+[data-theme="muichiro"] .btn-action.btn-wrong {
+  background: #fff1f2 !important;
+  color: #e11d48 !important;
+  border: 1.5px solid #fda4af !important;
+  box-shadow: 0 2px 8px rgba(225, 29, 72, 0.15) !important;
+}
+
+/* 豁｣隗｣繝懊ち繝ｳ */
+[data-theme="muichiro"] .btn-action.btn-correct,
 [data-theme="muichiro"] .btn-action.action-good {
   background: linear-gradient(135deg, #0d9488 0%, #2dd4bf 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(13, 148, 136, 0.35) !important;
 }
 
-[data-theme="muichiro"] .sync-btn {
-  background: rgba(13, 26, 36, 0.8) !important;
-  color: #5eead4 !important;
-  border-color: rgba(45, 212, 191, 0.3) !important;
-}
-
+/* 繝｢繝ｼ繝繝ｫ繧ｷ繝ｼ繝・*/
 [data-theme="muichiro"] .modal-sheet {
-  background: #0d1a24 !important;
-  color: #f0fdfa !important;
-  border-color: rgba(45, 212, 191, 0.35) !important;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), 0 0 20px rgba(45, 212, 191, 0.2) !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1.5px solid #14b8a6 !important;
+  box-shadow: 0 10px 40px rgba(19, 59, 70, 0.25) !important;
 }
 
 [data-theme="muichiro"] .modal-title {
-  color: #2dd4bf !important;
+  color: #0f766e !important;
+}
+
+[data-theme="muichiro"] .modal-subtitle {
+  color: #64748b !important;
+}
+
+[data-theme="muichiro"] .modal-close-btn {
+  color: #64748b !important;
 }
 
 [data-theme="muichiro"] .form-label {
-  color: #a5f3fc !important;
+  color: #134e4a !important;
 }
 
 [data-theme="muichiro"] .form-input {
-  background: #070d12 !important;
-  color: #f0fdfa !important;
-  border-color: rgba(45, 212, 191, 0.3) !important;
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+[data-theme="muichiro"] .form-input:focus {
+  border-color: #14b8a6 !important;
+}
+
+[data-theme="muichiro"] .pattern-item {
+  background: #f0fdfa !important;
+  border: 1px solid #99f6e4 !important;
+  color: #134e4a !important;
 }
 
 [data-theme="muichiro"] .btn-modal-action {
-  background: rgba(13, 26, 36, 0.8) !important;
-  color: #f0fdfa !important;
-  border-color: rgba(45, 212, 191, 0.25) !important;
+  background: #f8fafc !important;
+  color: #134e4a !important;
+  border: 1px solid #cbd5e1 !important;
 }
 
 [data-theme="muichiro"] .btn-modal-action.primary {
   background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%) !important;
   color: #ffffff !important;
-  border-color: #2dd4bf !important;
+  border: none !important;
 }
 
 /* ==========================================================================
@@ -2355,14 +2622,13 @@ html, body {
 /* ========================================================================
    ブランドロゴ表示制御（Roblox・鬼滅テーマはクロスの剣を維持）
    ======================================================================== */
-[data-theme="bloxfruits"] .brand-logo .logo-sword,
-[data-theme="muichiro"] .brand-logo .logo-sword,
-:root:not([data-theme="light"]):not([data-theme="dark"]) .brand-logo .logo-sword {
+[data-theme="bloxfruits"] .brand-logo .logo-sword {
   display: inline-block !important;
 }
-[data-theme="bloxfruits"] .brand-logo .logo-intellect,
-[data-theme="muichiro"] .brand-logo .logo-intellect,
-:root:not([data-theme="light"]):not([data-theme="dark"]) .brand-logo .logo-intellect {
+[data-theme="bloxfruits"] .brand-logo .logo-intellect {
+  display: none !important;
+}
+[data-theme="bloxfruits"] .brand-logo .logo-muichiro {
   display: none !important;
 }
 
@@ -2390,24 +2656,24 @@ html, body {
 
 /* 第0階層セレクター帯 (無一郎テーマ) */
 [data-theme="muichiro"] .hierarchy-tier0-section {
-  background: linear-gradient(135deg, rgba(13, 148, 136, 0.25) 0%, rgba(15, 23, 42, 0.9) 100%) !important;
-  border-color: rgba(45, 212, 191, 0.35) !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+  background: linear-gradient(135deg, rgba(204, 251, 241, 0.8) 0%, rgba(240, 253, 250, 0.95) 100%) !important;
+  border-color: rgba(20, 184, 166, 0.4) !important;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.12) !important;
 }
 
 [data-theme="muichiro"] .hierarchy-tier0-title {
-  color: #2dd4bf !important;
+  color: #0f766e !important;
 }
 
 [data-theme="muichiro"] .tier0-pill.active {
-  background: linear-gradient(135deg, rgba(45, 212, 191, 0.3) 0%, rgba(20, 184, 166, 0.4) 100%) !important;
-  border-color: #2dd4bf !important;
-  color: #ccfbf1 !important;
-  box-shadow: 0 0 12px rgba(45, 212, 191, 0.4) !important;
+  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%) !important;
+  border-color: #0d9488 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(13, 148, 136, 0.35) !important;
 }
 
 [data-theme="muichiro"] .tier0-pill-check {
-  color: #2dd4bf !important;
+  color: #5eead4 !important;
 }
 
 /* ==========================================================================
@@ -2593,7 +2859,7 @@ html, body {
   color: #ffb800 !important;
 }
 [data-theme="muichiro"] .deck-trigger-proj {
-  color: #2dd4bf !important;
+  color: #0d9488 !important;
 }
 
 /* 漢字出題 空欄・ふりがなスタイル */
@@ -2604,7 +2870,8 @@ html, body {
 }
 
 
-
+
+
 
 /* ========================================================
    貍｢蟄励ラ繝ｪ繝ｫ讓｡遽・ｧ｣遲斐せ繧ｿ繧､繝ｫ ・・迢ｬ遶区枚遶繝輔Ο繝ｼ (Mobile)
@@ -2715,4 +2982,35 @@ html, body {
 [data-theme="light"] .kanji-answer-val {
   color: #0f172a !important; /* スレートダーク高コントラスト */
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Muichiro Theme: High-contrast slate overrides */
+[data-theme="muichiro"] .kanji-answer-label {
+  color: #64748b !important;
+}
+
+[data-theme="muichiro"] .kanji-answer-val {
+  color: #0f172a !important; /* Slate dark contrast */
+  text-shadow: none !important;
+}
+
+[data-theme="muichiro"] .kanji-sentence-answer-flow {
+  background: #ffffff !important;
+  border: 1.5px solid #5eead4 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="muichiro"] .kanji-answer-fill-box {
+  background: #ccfbf1 !important;
+  border: 1.5px solid #0d9488 !important;
+  color: #0d9488 !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+[data-theme="muichiro"] .kanji-compound-badge {
+  background: #ffffff !important;
+  border: 1px solid #14b8a6 !important;
+  color: #0f766e !important;
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.1) !important;
 }

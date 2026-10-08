@@ -341,7 +341,7 @@ const App = {
       } else if (theme === 'dark') {
         metaTheme.setAttribute('content', '#0f172a');
       } else if (theme === 'muichiro') {
-        metaTheme.setAttribute('content', '#070d12');
+        metaTheme.setAttribute('content', '#a7f3d0');
       } else {
         metaTheme.setAttribute('content', '#0a0e17');
       }

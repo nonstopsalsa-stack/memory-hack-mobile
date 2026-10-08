@@ -19,7 +19,8 @@ const ASSETS_TO_CACHE = [
   './assets/icon-192.png',
   './assets/icon-512.png',
   './assets/icon.png',
-  './assets/icon.ico'
+  './assets/icon.ico',
+  './assets/muichiro_avatar.png'
 ];
 
 self.addEventListener('install', (event) => {
