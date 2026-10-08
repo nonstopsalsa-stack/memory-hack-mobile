@@ -32,10 +32,10 @@ $html = [System.IO.File]::ReadAllText($htmlPath, [System.Text.Encoding]::UTF8)
 $css = [System.IO.File]::ReadAllText($cssPath, [System.Text.Encoding]::UTF8)
 
 # 1. バージョン整合性
-Assert-Check "1.1 study.js version is v2.2.2" ($study.Contains("version: 'v2.2.2'"))
-Assert-Check "1.2 service-worker.js CACHE_NAME is memory-hack-mobile-v2.2.2" ($sw.Contains("memory-hack-mobile-v2.2.2"))
-Assert-Check "1.3 service-worker.js ASSETS_TO_CACHE has v2.2.2 queries" ($sw.Contains("?v=2.2.2"))
-Assert-Check "1.4 index.html has v2.2.2 query strings" ($html.Contains("?v=2.2.2"))
+Assert-Check "1.1 study.js version is v2.2.3" ($study.Contains("version: 'v2.2.3'"))
+Assert-Check "1.2 service-worker.js CACHE_NAME is memory-hack-mobile-v2.2.3" ($sw.Contains("memory-hack-mobile-v2.2.3"))
+Assert-Check "1.3 service-worker.js ASSETS_TO_CACHE has v2.2.3 queries" ($sw.Contains("?v=2.2.3"))
+Assert-Check "1.4 index.html has v2.2.3 query strings" ($html.Contains("?v=2.2.3"))
 
 # 2. 漢字パターン定義と状態
 Assert-Check "2.1 study.js defines KANJI_PATTERNS" ($study.Contains("KANJI_PATTERNS:") -and $study.Contains("char_to_read") -and $study.Contains("sentence_fill"))
