@@ -2596,5 +2596,12 @@ html, body {
   color: #2dd4bf !important;
 }
 
+/* 漢字出題 空欄・ふりがなスタイル */
+.kanji-blank-reading {
+  color: #38bdf8;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
 
 

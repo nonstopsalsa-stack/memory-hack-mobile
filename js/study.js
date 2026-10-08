@@ -313,7 +313,7 @@ const StudyManager = {
   },
 
   /**
-   * 漢字カードの例文を安全パース
+   * 漢字カードの例文を安全パース & ふりがな自動解決
    */
   parseKanjiSentence(card) {
     const rawSent = (card && (card.exampleTranslation || card.example)) ? (card.exampleTranslation || card.example) : '';
@@ -321,18 +321,90 @@ const StudyManager = {
 
     const bracketMatch = rawSent.match(/\[([^\]]+)\]|［([^］]+)］/);
     let target = '';
+    let targetReading = '';
     const sentence = rawSent;
 
     if (bracketMatch) {
-      target = bracketMatch[1] || bracketMatch[2] || '';
+      const rawInside = (bracketMatch[1] || bracketMatch[2] || '').trim();
+      // ① 例文内の明示的記法（[進捗|しんちょく]、[進捗(しんちょく)] 等）
+      if (rawInside.includes('|') || rawInside.includes('｜')) {
+        const parts = rawInside.split(/[|｜]/);
+        target = (parts[0] || '').trim();
+        targetReading = (parts[1] || '').trim();
+      } else {
+        const parenMatch = rawInside.match(/^([^(\uFF08]+)[(\uFF08]([^)\uFF09]+)[)\uFF09]$/);
+        if (parenMatch) {
+          target = (parenMatch[1] || '').trim();
+          targetReading = (parenMatch[2] || '').trim();
+        } else {
+          target = rawInside;
+        }
+      }
     } else if (card.front && rawSent.includes(card.front)) {
       target = card.front;
     }
 
+    if (!target) {
+      target = card.front || '';
+    }
+
+    // 読み解決（未解決の場合）
+    if (!targetReading) {
+      const compounds = this.parseKanjiCompounds(card);
+      // ② compounds（熟語リスト）からの完全一致検索
+      if (compounds && compounds.length > 0) {
+        const exact = compounds.find(c => c.word === target);
+        if (exact && exact.reading) {
+          targetReading = exact.reading.trim();
+        }
+      }
+
+      const readings = this.parseKanjiReadings(card);
+      // ③ kunReadings（訓読み）と送り仮名の合成（例: 預ける ➔ あず-ける から「あずける」）
+      if (!targetReading && card.front && target.startsWith(card.front)) {
+        const okurigana = target.slice(card.front.length);
+        if (readings && readings.kunReadings && readings.kunReadings.length > 0) {
+          for (const kun of readings.kunReadings) {
+            if (kun.includes('-')) {
+              const [stem, okuri] = kun.split('-');
+              if (okuri === okurigana) {
+                targetReading = (stem + okuri).trim();
+                break;
+              }
+            } else if (okurigana && kun.endsWith(okurigana)) {
+              targetReading = kun.trim();
+              break;
+            }
+          }
+        }
+      }
+
+      // ④ compounds からの語幹・部分一致検索
+      if (!targetReading && compounds && compounds.length > 0) {
+        const matchStem = compounds.find(c => c.word && (target.includes(c.word) || c.word.includes(target)));
+        if (matchStem && matchStem.reading) {
+          targetReading = matchStem.reading.trim();
+        }
+      }
+
+      // ⑤ 1文字語句（target === card.front）の場合の代表訓・音読み
+      if (!targetReading && card.front && target === card.front) {
+        if (readings && readings.kunReadings && readings.kunReadings.length > 0) {
+          targetReading = readings.kunReadings[0].replace(/-/g, '').trim();
+        } else if (readings && readings.onReadings && readings.onReadings.length > 0) {
+          targetReading = readings.onReadings[0].trim();
+        }
+      }
+
+      // ⑥ 未解決時は空文字 ''（フォールバック）
+      targetReading = targetReading || '';
+    }
+
     return {
       rawSentence: sentence,
-      target: target || card.front || '',
-      blankSentence: this.formatSentenceTarget(sentence, target, 'fill'),
+      target: target,
+      targetReading: targetReading,
+      blankSentence: this.formatSentenceTarget(sentence, target, 'fill', targetReading),
       highlightSentence: this.formatSentenceTarget(sentence, target, 'highlight')
     };
   },
@@ -340,25 +412,52 @@ const StudyManager = {
   /**
    * 例文内の [ターゲット] を穴埋めまたはハイライトに変換
    */
-  formatSentenceTarget(sentence, targetWord, mode = 'fill') {
+  // formatSentenceTarget(sentence, targetWord, mode = 'fill')
+  formatSentenceTarget(sentence, targetWord, mode = 'fill', resolvedReading = '') {
     if (!sentence) return '';
     const text = sentence;
     const bracketRegex = /\[([^\]]+)\]|［([^］]+)］/g;
-    
+
+    const getBlankHtml = (reading) => {
+      const r = reading || resolvedReading;
+      if (r) {
+        return `<span class="kanji-blank-box" style="display:inline-block;border:2px dashed #38bdf8;border-radius:6px;padding:2px 8px;background:rgba(56,189,248,0.15);color:#38bdf8;font-weight:bold;">［ <span class="kanji-blank-reading" style="color:#38bdf8;font-weight:bold;">${escapeHtml(r)}</span> ］</span>`;
+      }
+      return '<span class="kanji-blank-box" style="display:inline-block;border:2px dashed #38bdf8;border-radius:6px;padding:2px 8px;background:rgba(56,189,248,0.15);color:#38bdf8;font-weight:bold;">［　　］</span>';
+    };
+
     if (bracketRegex.test(text)) {
+      bracketRegex.lastIndex = 0;
       if (mode === 'fill') {
-        return text.replace(bracketRegex, '<span class="kanji-blank-box" style="display:inline-block;border:2px dashed #38bdf8;border-radius:6px;padding:2px 8px;background:rgba(56,189,248,0.15);color:#38bdf8;font-weight:bold;">［　　］</span>');
+        return text.replace(bracketRegex, (match, p1, p2) => {
+          const rawInside = (p1 || p2 || '').trim();
+          let explicitReading = '';
+          if (rawInside.includes('|') || rawInside.includes('｜')) {
+            explicitReading = (rawInside.split(/[|｜]/)[1] || '').trim();
+          } else {
+            const parenMatch = rawInside.match(/^[^(\uFF08]+[(\uFF08]([^)\uFF09]+)[)\uFF09]$/);
+            if (parenMatch) explicitReading = (parenMatch[2] || '').trim();
+          }
+          return getBlankHtml(explicitReading);
+        });
       } else {
         return text.replace(bracketRegex, (match, p1, p2) => {
-          const word = p1 || p2;
+          const rawInside = (p1 || p2 || '').trim();
+          let word = rawInside;
+          if (rawInside.includes('|') || rawInside.includes('｜')) {
+            word = (rawInside.split(/[|｜]/)[0] || '').trim();
+          } else {
+            const parenMatch = rawInside.match(/^[^(\uFF08]+[(\uFF08]([^)\uFF09]+)[)\uFF09]$/);
+            if (parenMatch) word = (parenMatch[1] || '').trim();
+          }
           return `<span class="kanji-highlight-box" style="display:inline-block;border-bottom:3px solid #f59e0b;padding:0 4px;font-weight:bold;color:#f59e0b;">${escapeHtml(word)}</span>`;
         });
       }
     }
-    
+
     if (targetWord && text.includes(targetWord)) {
       if (mode === 'fill') {
-        return text.split(targetWord).join('<span class="kanji-blank-box" style="display:inline-block;border:2px dashed #38bdf8;border-radius:6px;padding:2px 8px;background:rgba(56,189,248,0.15);color:#38bdf8;font-weight:bold;">［　　］</span>');
+        return text.split(targetWord).join(getBlankHtml(resolvedReading));
       } else {
         return text.split(targetWord).join(`<span class="kanji-highlight-box" style="display:inline-block;border-bottom:3px solid #f59e0b;padding:0 4px;font-weight:bold;color:#f59e0b;">${escapeHtml(targetWord)}</span>`);
       }
