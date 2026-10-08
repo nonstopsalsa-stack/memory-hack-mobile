@@ -3032,3 +3032,13 @@ html, body {
   color: #0f766e !important;
   box-shadow: 0 2px 6px rgba(13, 148, 136, 0.1) !important;
 }
+
+/* 繝｢繝舌う繝ｫ迚亥・陦悟ｮ悟・荳ｭ螟ｮ謠・∴ (v2.2.5) */
+.card-prompt-text,
+.card-prompt-text span {
+  display: block !important;
+  width: 100% !important;
+  text-align: center !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}

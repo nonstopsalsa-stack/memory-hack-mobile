@@ -1484,9 +1484,6 @@ const StudyManager = {
             <div class="card-prompt-container" style="text-align: center; padding: 12px 4px;">
               <div class="card-prompt-text ${fontClass}" style="margin: 10px 0;">${escapeHtml(text)}</div>
               ${imgHtml}
-              <div class="card-target-guide guide-universal">
-                ❓ 問題 (表) を想起
-              </div>
             </div>
           `;
         } else if (pattern === 'ja_to_en' || pattern === 'ja_to_audio') {
@@ -1502,19 +1499,17 @@ const StudyManager = {
         } else {
           // 基本出題: 表 ➔ 裏 (問題・用語・算数文章題)
           const text = card.front || '';
-          const fontClass = this.getFontScaleClass(text);
+          const cleanText = String(text).split(/\r?\n/).map(l => l.trim()).join('\n');
+          const fontClass = this.getFontScaleClass(cleanText);
           const imgHtml = this.renderImageHtml(card.frontImage);
           const hasVoice = (card.voiceType && card.voiceType !== 'none') || pattern === 'en_to_ja';
           questionHtml = `
             <div class="card-prompt-container" style="text-align: center; padding: 12px 4px;">
               <div class="card-prompt-text ${fontClass}" style="margin: 10px 0;">
-                <span>${escapeHtml(text)}</span>
+                <span>${escapeHtml(cleanText)}</span>
                 ${hasVoice ? `<button class="speaker-btn" style="margin-left: 8px; vertical-align: middle;" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く">🔊</button>` : ''}
               </div>
               ${imgHtml}
-              <div class="card-target-guide guide-universal">
-                🎯 解答 (裏) を想起
-              </div>
             </div>
           `;
         }
