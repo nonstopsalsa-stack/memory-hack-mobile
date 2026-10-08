@@ -425,7 +425,8 @@ const App = {
 
   registerServiceWorker() {
     if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
-      navigator.serviceWorker.register('./service-worker.js?v=2.2.3', { updateViaCache: 'none' }).then((reg) => {
+      const swVer = (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.VERSION) ? APP_CONFIG.VERSION : '2.2.7';
+      navigator.serviceWorker.register(`./service-worker.js?v=${swVer}`, { updateViaCache: 'none' }).then((reg) => {
         console.log('[SW] Registered successfully:', reg.scope);
         // 起動時に毎回バックグラウンドで最新SWの存在を即時チェック
         reg.update().catch(() => {});
