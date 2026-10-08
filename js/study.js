@@ -1480,9 +1480,11 @@ const StudyManager = {
           const text = card.back || '';
           const fontClass = this.getFontScaleClass(text);
           const imgHtml = this.renderImageHtml(card.backImage);
+          const cleanText = String(text).split(/\r?\n/).map(l => l.trim()).join('\n');
+          const textHtml = cleanText.trim() ? `<div class="card-prompt-text ${fontClass}" style="margin: 10px 0;"><span>${escapeHtml(cleanText)}</span></div>` : '';
           questionHtml = `
             <div class="card-prompt-container" style="text-align: center; padding: 12px 4px;">
-              <div class="card-prompt-text ${fontClass}" style="margin: 10px 0;">${escapeHtml(text)}</div>
+              ${textHtml}
               ${imgHtml}
             </div>
           `;
@@ -1503,12 +1505,14 @@ const StudyManager = {
           const fontClass = this.getFontScaleClass(cleanText);
           const imgHtml = this.renderImageHtml(card.frontImage);
           const hasVoice = (card.voiceType && card.voiceType !== 'none') || pattern === 'en_to_ja';
+          const textHtml = cleanText.trim() ? `
+            <div class="card-prompt-text ${fontClass}" style="margin: 10px 0;">
+              <span>${escapeHtml(cleanText)}</span>
+              ${hasVoice ? `<button class="speaker-btn" style="margin-left: 8px; vertical-align: middle;" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く">🔊</button>` : ''}
+            </div>` : '';
           questionHtml = `
             <div class="card-prompt-container" style="text-align: center; padding: 12px 4px;">
-              <div class="card-prompt-text ${fontClass}" style="margin: 10px 0;">
-                <span>${escapeHtml(cleanText)}</span>
-                ${hasVoice ? `<button class="speaker-btn" style="margin-left: 8px; vertical-align: middle;" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く">🔊</button>` : ''}
-              </div>
+              ${textHtml}
               ${imgHtml}
             </div>
           `;
