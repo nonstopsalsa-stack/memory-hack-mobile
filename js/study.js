@@ -1,4 +1,4 @@
-/**
+﻿/**
  * study.js - MEMORY HACK Mobile 学習マネージャー
  * 
  * 主要機能:
@@ -119,8 +119,16 @@ const StudyManager = {
    */
   getFontScaleClass(text) {
     if (!text) return 'text-hero';
-    const len = String(text).trim().length;
-    if (len <= 15) return 'text-hero';
+    const clean = String(text).replace(/<[^>]+>/g, '').trim();
+    const len = clean.length;
+    const lines = clean.split(/\r?\n/).length;
+
+    // 陦梧焚縺ｫ繧医ｋ繧ｹ繧ｱ繝ｼ繝ｫ繝繧ｦ繝ｳ菫晁ｭｷ (隍・焚陦後き繝ｼ繝峨・縺ｯ縺ｿ蜃ｺ縺励ｒ髦ｲ豁｢)
+    if (lines >= 5) return 'text-content';
+    if (lines >= 3) return (len <= 45 ? 'text-large' : 'text-medium');
+    if (lines === 2 && len > 20) return 'text-large';
+
+    // 騾壼ｸｸ縺ｮ譁・ｭ玲焚蛻､螳・    if (len <= 15) return 'text-hero';
     if (len <= 45) return 'text-large';
     if (len <= 120) return 'text-medium';
     return 'text-content';
