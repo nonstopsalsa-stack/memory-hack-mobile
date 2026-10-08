@@ -1,4 +1,4 @@
-﻿/**
+/**
  * study.js - MEMORY HACK Mobile 学習マネージャー
  * 
  * 主要機能:
@@ -10,7 +10,7 @@
  */
 
 const StudyManager = {
-  version: 'v2.2.1',
+  version: 'v2.2.2',
   allCards: [],
   projects: [],
   activeProjectId: 'deck_default',
@@ -635,16 +635,26 @@ const StudyManager = {
       </div>
     `;
 
+    // 音訓読み解答の構造化HTMLビルダー
+    const buildReadingsAnswerHtml = () => {
+      if (readings.allReadings && readings.allReadings.length > 0) {
+        const items = readings.allReadings.map(r => `
+          <div class="kanji-answer-item">
+            <span class="kanji-answer-label">${escapeHtml(r.label)}:</span>
+            <span class="kanji-answer-val">${escapeHtml(r.reading)}</span>
+          </div>
+        `).join('');
+        return `<div class="kanji-answer-readings-wrap">${items}</div>`;
+      }
+      return `<div class="kanji-answer-readings-wrap"><div class="kanji-answer-item"><span class="kanji-answer-val">${escapeHtml(card.back || '—')}</span></div></div>`;
+    };
+
     switch (pattern) {
       case 'char_to_read': {
         q.targetWord = card.front;
         q.displayPrompt = `<span class="target-kanji-huge" style="font-size: 4rem; font-weight: 800; color: #f8fafc;">${escapeHtml(card.front)}</span>`;
         q.guideText = '🇯🇵 読み・意味を想起';
-        q.answerMain = `
-          <div style="font-size: 1.5rem; font-weight: bold; color: #38bdf8; margin-bottom: 6px;">
-            ${escapeHtml(readings.allReadings.map(r => `${r.label}: ${r.reading}`).join('　') || card.back)}
-          </div>
-        `;
+        q.answerMain = buildReadingsAnswerHtml();
         q.answerSub = q.fullReadingsHtml;
         break;
       }
@@ -774,11 +784,7 @@ const StudyManager = {
         q.targetWord = card.front;
         q.displayPrompt = `<span class="target-kanji-huge" style="font-size: 4rem; font-weight: 800; color: #f8fafc;">${escapeHtml(card.front)}</span>`;
         q.guideText = '🇯🇵 読み・意味を想起';
-        q.answerMain = `
-          <div style="font-size: 1.5rem; font-weight: bold; color: #38bdf8; margin-bottom: 6px;">
-            ${escapeHtml(readings.allReadings.map(r => `${r.label}: ${r.reading}`).join('　') || card.back)}
-          </div>
-        `;
+        q.answerMain = buildReadingsAnswerHtml();
         q.answerSub = q.fullReadingsHtml;
         break;
       }
