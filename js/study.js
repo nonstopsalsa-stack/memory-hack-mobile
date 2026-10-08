@@ -1,4 +1,4 @@
-/**
+﻿/**
  * study.js - MEMORY HACK Mobile 学習マネージャー
  * 
  * 主要機能:
@@ -319,12 +319,22 @@ const StudyManager = {
     const rawSent = (card && (card.exampleTranslation || card.example)) ? (card.exampleTranslation || card.example) : '';
     if (!rawSent) return null;
 
-    const bracketMatch = rawSent.match(/\[([^\]]+)\]|［([^］]+)］/);
+    const toHira = (str) => (str || '').replace(/[\u30a1-\u30f6]/g, m => String.fromCharCode(m.charCodeAt(0) - 0x60));
+
+    // 角括弧 [ ] または ［ ］ のターゲット語句を検索
+    const bracketRegex = /\[([^\]]+)\]|［([^］]+)］/;
+    const bracketMatch = rawSent.match(bracketRegex);
     let target = '';
     let targetReading = '';
     const sentence = rawSent;
+    let contextCompound = null;
+
+    let bracketIndex = -1;
+    let bracketLength = 0;
 
     if (bracketMatch) {
+      bracketIndex = bracketMatch.index;
+      bracketLength = bracketMatch[0].length;
       const rawInside = (bracketMatch[1] || bracketMatch[2] || '').trim();
       // ① 例文内の明示的記法（[進捗|しんちょく]、[進捗(しんちょく)] 等）
       if (rawInside.includes('|') || rawInside.includes('｜')) {
@@ -332,7 +342,7 @@ const StudyManager = {
         target = (parts[0] || '').trim();
         targetReading = (parts[1] || '').trim();
       } else {
-        const parenMatch = rawInside.match(/^([^(\uFF08]+)[(\uFF08]([^)\uFF09]+)[)\uFF09]$/);
+        const parenMatch = rawInside.match(/^[^(\uFF08]+[(\uFF08]([^)\uFF09]+)[)\uFF09]$/);
         if (parenMatch) {
           target = (parenMatch[1] || '').trim();
           targetReading = (parenMatch[2] || '').trim();
@@ -351,6 +361,8 @@ const StudyManager = {
     // 読み解決（未解決の場合）
     if (!targetReading) {
       const compounds = this.parseKanjiCompounds(card);
+      const readings = this.parseKanjiReadings(card);
+
       // ② compounds（熟語リスト）からの完全一致検索
       if (compounds && compounds.length > 0) {
         const exact = compounds.find(c => c.word === target);
@@ -359,7 +371,6 @@ const StudyManager = {
         }
       }
 
-      const readings = this.parseKanjiReadings(card);
       // ③ kunReadings（訓読み）と送り仮名の合成（例: 預ける ➔ あず-ける から「あずける」）
       if (!targetReading && card.front && target.startsWith(card.front)) {
         const okurigana = target.slice(card.front.length);
@@ -379,24 +390,113 @@ const StudyManager = {
         }
       }
 
-      // ④ compounds からの語幹・部分一致検索
-      if (!targetReading && compounds && compounds.length > 0) {
+      // ④【新設】1文字ターゲット時の文脈スキャン（Contextual Scan）
+      if (!targetReading && target.length === 1 && compounds && compounds.length > 0) {
+        let nextChar = '';
+        let prevChar = '';
+        if (bracketIndex >= 0) {
+          nextChar = rawSent.charAt(bracketIndex + bracketLength) || '';
+          prevChar = bracketIndex > 0 ? rawSent.charAt(bracketIndex - 1) : '';
+        } else {
+          const tIdx = rawSent.indexOf(target);
+          if (tIdx >= 0) {
+            nextChar = rawSent.charAt(tIdx + target.length) || '';
+            prevChar = tIdx > 0 ? rawSent.charAt(tIdx - 1) : '';
+          }
+        }
+
+        let matchedComp = null;
+        let isSuffix = false;
+        if (nextChar) {
+          matchedComp = compounds.find(c => c.word === (target + nextChar));
+        }
+        if (!matchedComp && prevChar) {
+          matchedComp = compounds.find(c => c.word === (prevChar + target));
+          if (matchedComp) isSuffix = true;
+        }
+
+        if (matchedComp && matchedComp.reading) {
+          const compReading = toHira(matchedComp.reading.trim());
+          let foundStem = '';
+          let explanationNote = '';
+
+          // 訓読み語幹との照合
+          if (readings && readings.kunReadings && readings.kunReadings.length > 0) {
+            for (const kun of readings.kunReadings) {
+              const stem = kun.includes('-') ? kun.split('-')[0].trim() : kun.trim();
+              const stemHira = toHira(stem);
+              if (!isSuffix && compReading.startsWith(stemHira)) {
+                foundStem = stemHira;
+                explanationNote = `訓読み「${kun}」の語幹`;
+                break;
+              } else if (isSuffix && compReading.endsWith(stemHira)) {
+                foundStem = stemHira;
+                explanationNote = `訓読み「${kun}」の語幹`;
+                break;
+              }
+            }
+          }
+
+          // 音読みとの照合
+          if (!foundStem && readings && readings.onReadings && readings.onReadings.length > 0) {
+            for (const on of readings.onReadings) {
+              const onHira = toHira(on.trim());
+              if (!isSuffix && compReading.startsWith(onHira)) {
+                foundStem = onHira;
+                explanationNote = `音読み「${on}」`;
+                break;
+              } else if (isSuffix && compReading.endsWith(onHira)) {
+                foundStem = onHira;
+                explanationNote = `音読み「${on}」`;
+                break;
+              }
+            }
+          }
+
+          if (foundStem) {
+            targetReading = foundStem;
+            contextCompound = {
+              word: matchedComp.word,
+              reading: matchedComp.reading,
+              explanation: `💡 対象語句: ${matchedComp.word}（${matchedComp.reading}） ｜ ${explanationNote}`
+            };
+          }
+        }
+      }
+
+      // ⑤【新設】1文字ターゲット時の訓読み語幹（Stem）フォールバック
+      if (!targetReading && target.length === 1) {
+        if (readings && readings.kunReadings && readings.kunReadings.length > 0) {
+          const kun0 = readings.kunReadings[0];
+          targetReading = kun0.includes('-') ? kun0.split('-')[0].trim() : kun0.trim();
+          if (!contextCompound) {
+            contextCompound = {
+              word: target,
+              reading: targetReading,
+              explanation: `💡 訓読み「${kun0}」の語幹`
+            };
+          }
+        }
+      }
+
+      // ⑥ compounds からの語幹・部分一致（target.length >= 2 限定：1文字の誤爆を完全防止）
+      if (!targetReading && target.length >= 2 && compounds && compounds.length > 0) {
         const matchStem = compounds.find(c => c.word && (target.includes(c.word) || c.word.includes(target)));
         if (matchStem && matchStem.reading) {
           targetReading = matchStem.reading.trim();
         }
       }
 
-      // ⑤ 1文字語句（target === card.front）の場合の代表訓・音読み
+      // ⑦ 1文字語句（target === card.front）の場合の代表訓・音読みフォールバック
       if (!targetReading && card.front && target === card.front) {
         if (readings && readings.kunReadings && readings.kunReadings.length > 0) {
           targetReading = readings.kunReadings[0].replace(/-/g, '').trim();
         } else if (readings && readings.onReadings && readings.onReadings.length > 0) {
-          targetReading = readings.onReadings[0].trim();
+          targetReading = toHira(readings.onReadings[0].trim());
         }
       }
 
-      // ⑥ 未解決時は空文字 ''（フォールバック）
+      // ⑧ 未解決時は空文字 ''（従来の［　　］）
       targetReading = targetReading || '';
     }
 
@@ -405,7 +505,9 @@ const StudyManager = {
       target: target,
       targetReading: targetReading,
       blankSentence: this.formatSentenceTarget(sentence, target, 'fill', targetReading),
-      highlightSentence: this.formatSentenceTarget(sentence, target, 'highlight')
+      highlightSentence: this.formatSentenceTarget(sentence, target, 'highlight'),
+      answerSentence: this.formatSentenceTarget(sentence, target, 'answer_fill'),
+      contextCompound: contextCompound
     };
   },
 
@@ -426,6 +528,10 @@ const StudyManager = {
       return '<span class="kanji-blank-box" style="display:inline-block;border:2px dashed #38bdf8;border-radius:6px;padding:2px 8px;background:rgba(56,189,248,0.15);color:#38bdf8;font-weight:bold;">［　　］</span>';
     };
 
+    const getAnswerFillHtml = (word) => {
+      return `<span class="kanji-answer-fill-box">［ ${escapeHtml(word)} ］</span>`;
+    };
+
     if (bracketRegex.test(text)) {
       bracketRegex.lastIndex = 0;
       if (mode === 'fill') {
@@ -439,6 +545,18 @@ const StudyManager = {
             if (parenMatch) explicitReading = (parenMatch[2] || '').trim();
           }
           return getBlankHtml(explicitReading);
+        });
+      } else if (mode === 'answer_fill') {
+        return text.replace(bracketRegex, (match, p1, p2) => {
+          const rawInside = (p1 || p2 || '').trim();
+          let word = rawInside;
+          if (rawInside.includes('|') || rawInside.includes('｜')) {
+            word = (rawInside.split(/[|｜]/)[0] || '').trim();
+          } else {
+            const parenMatch = rawInside.match(/^[^(\uFF08]+[(\uFF08]([^)\uFF09]+)[)\uFF09]$/);
+            if (parenMatch) word = (parenMatch[1] || '').trim();
+          }
+          return getAnswerFillHtml(word);
         });
       } else {
         return text.replace(bracketRegex, (match, p1, p2) => {
@@ -458,6 +576,8 @@ const StudyManager = {
     if (targetWord && text.includes(targetWord)) {
       if (mode === 'fill') {
         return text.split(targetWord).join(getBlankHtml(resolvedReading));
+      } else if (mode === 'answer_fill') {
+        return text.split(targetWord).join(getAnswerFillHtml(targetWord));
       } else {
         return text.split(targetWord).join(`<span class="kanji-highlight-box" style="display:inline-block;border-bottom:3px solid #f59e0b;padding:0 4px;font-weight:bold;color:#f59e0b;">${escapeHtml(targetWord)}</span>`);
       }
@@ -603,10 +723,14 @@ const StudyManager = {
         q.answerMain = `
           <span class="target-kanji-huge" style="font-size: 3rem; font-weight: 800; color: #f8fafc;">${escapeHtml(q.targetWord)}</span>
         `;
+        const badgeHtml = (sentData && sentData.contextCompound && sentData.contextCompound.explanation)
+          ? `<div class="kanji-compound-badge">${escapeHtml(sentData.contextCompound.explanation)}</div>`
+          : '';
         q.answerSub = `
-          <div style="margin-top: 10px; font-size: 1rem; line-height: 1.6; text-align: left;">
-            ${sentData ? sentData.highlightSentence : ''}
+          <div class="kanji-sentence-answer-flow">
+            ${sentData ? (sentData.answerSentence || sentData.highlightSentence) : ''}
           </div>
+          ${badgeHtml}
           ${q.fullReadingsHtml}
         `;
         break;
@@ -639,7 +763,7 @@ const StudyManager = {
           </div>
         `;
         q.answerSub = `
-          <div style="margin-top: 10px; font-size: 1rem; line-height: 1.6; text-align: left;">
+          <div class="kanji-sentence-answer-flow">
             ${sentData ? sentData.highlightSentence : ''}
           </div>
           ${q.fullReadingsHtml}
