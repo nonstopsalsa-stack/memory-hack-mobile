@@ -1523,6 +1523,12 @@ const StudyManager = {
           const fontClass = this.getFontScaleClass(cleanText);
           const imgHtml = this.renderImageHtml(card.frontImage);
           const hasVoice = (card.voiceType && card.voiceType !== 'none') || pattern === 'en_to_ja';
+          const isEnToJa = pattern === 'en_to_ja';
+          const guideHtml = isEnToJa ? `
+            <div class="card-target-guide guide-ja" style="margin-top: 12px;">
+              <span class="card-flow-arrow">══▶</span>
+              <span class="card-target-box">🇯🇵 日本語訳</span>
+            </div>` : '';
           const textHtml = cleanText.trim() ? `
             <div class="card-prompt-text ${fontClass}">
               <span>${escapeHtml(cleanText)}</span>
@@ -1531,6 +1537,7 @@ const StudyManager = {
           questionHtml = `
             <div class="card-prompt-container">
               ${textHtml}
+              ${guideHtml}
               ${imgHtml}
             </div>
           `;
