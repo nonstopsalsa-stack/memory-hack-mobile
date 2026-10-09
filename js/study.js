@@ -10,7 +10,7 @@
  */
 
 const StudyManager = {
-  version: 'v2.2.7',
+  version: 'v2.2.8',
   allCards: [],
   projects: [],
   activeProjectId: 'deck_default',
@@ -108,10 +108,10 @@ const StudyManager = {
   selectedFilter: { level1: 'all', level2: 'all', level3: 'all' },
   filterMode: 'all_random', // 'due' | 'all_random' | 'weak' | 'mistakes_today' | 'sequence'
   itemTypeFilter: 'all',     // 'all' | 'word' | 'sentence'
-  activePatterns: ['front_to_back', 'back_to_front'],
-  activePatternsUniversal: ['front_to_back', 'back_to_front'],
-  activePatternsLanguage: ['en_to_ja', 'ja_to_en', 'audio_to_ja', 'audio_to_en', 'ja_to_audio', 'en_to_audio'],
-  activePatternsKanji: ['char_to_read', 'read_to_char', 'word_to_read', 'read_to_word', 'sentence_fill', 'sentence_read'],
+  activePatterns: ['front_to_back'],
+  activePatternsUniversal: ['front_to_back'],
+  activePatternsLanguage: ['en_to_ja'],
+  activePatternsKanji: ['read_to_char'],
   autoPlayAudio: true,
 
   /**
@@ -140,10 +140,10 @@ const StudyManager = {
   sanitizeUniversalPatterns(patterns) {
     const validKeys = Object.keys(this.UNIVERSAL_PATTERNS || {});
     if (!Array.isArray(patterns) || patterns.length === 0) {
-      return [...validKeys];
+      return ['front_to_back'];
     }
     const filtered = patterns.filter(k => validKeys.includes(k));
-    return filtered.length > 0 ? filtered : [...validKeys];
+    return filtered.length > 0 ? filtered : ['front_to_back'];
   },
 
   /**
@@ -152,10 +152,10 @@ const StudyManager = {
   sanitizeLanguagePatterns(patterns) {
     const validKeys = ['en_to_ja', 'ja_to_en', 'audio_to_ja', 'audio_to_en', 'ja_to_audio', 'en_to_audio'];
     if (!Array.isArray(patterns) || patterns.length === 0) {
-      return [...validKeys];
+      return ['en_to_ja'];
     }
     const filtered = patterns.filter(k => validKeys.includes(k));
-    return filtered.length > 0 ? filtered : [...validKeys];
+    return filtered.length > 0 ? filtered : ['en_to_ja'];
   },
 
   /**
@@ -245,10 +245,10 @@ const StudyManager = {
   sanitizeKanjiPatterns(patterns) {
     const validKeys = Object.keys(this.KANJI_PATTERNS || {});
     if (!Array.isArray(patterns) || patterns.length === 0) {
-      return validKeys.length > 0 ? [...validKeys] : ['char_to_read'];
+      return ['read_to_char'];
     }
     const filtered = patterns.filter(k => validKeys.includes(k));
-    return filtered.length > 0 ? filtered : (validKeys.length > 0 ? [...validKeys] : ['char_to_read']);
+    return filtered.length > 0 ? filtered : ['read_to_char'];
   },
 
   /**
@@ -833,25 +833,8 @@ const StudyManager = {
     this.currentProject = this.projects.find(p => p.id === this.activeProjectId) || this.projects[0];
     this.cards = this.filterCardsForProject(this.allCards, this.activeProjectId, this.projects);
 
-    // 1. 設定の復元
-    const savedUniversalPatterns = await Storage.getSetting('study_active_patterns_universal', null);
-    if (savedUniversalPatterns && Array.isArray(savedUniversalPatterns) && savedUniversalPatterns.length > 0) {
-      this.activePatternsUniversal = this.sanitizeUniversalPatterns(savedUniversalPatterns);
-      this.activePatterns = this.activePatternsUniversal;
-    } else {
-      this.activePatternsUniversal = ['front_to_back', 'back_to_front'];
-      this.activePatterns = this.activePatternsUniversal;
-    }
-
-    const savedLanguagePatterns = await Storage.getSetting('study_active_patterns_language', null);
-    if (savedLanguagePatterns && Array.isArray(savedLanguagePatterns) && savedLanguagePatterns.length > 0) {
-      this.activePatternsLanguage = this.sanitizeLanguagePatterns(savedLanguagePatterns);
-    } else {
-      this.activePatternsLanguage = ['en_to_ja', 'ja_to_en', 'audio_to_ja', 'audio_to_en', 'ja_to_audio', 'en_to_audio'];
-    }
-
-    const savedKanjiPatterns = await Storage.getSetting('study_active_patterns_kanji', null);
-    this.activePatternsKanji = this.sanitizeKanjiPatterns(savedKanjiPatterns);
+    // 1. 出題パターンの初期化連動
+    await this.resetPatternsToDefault();
 
     this.selectedFilter = await Storage.getFilterState();
     this.filterMode = await Storage.getSetting('study_filter_mode', 'all_random');
@@ -896,16 +879,8 @@ const StudyManager = {
     this.selectedFilter = { level1: 'all', level2: 'all', level3: 'all' };
     await Storage.saveFilterState(this.selectedFilter);
 
-    // 出題パターンのサニタイズ
-    const cardType = this.getCurrentCardType();
-    if (cardType === 'kanji') {
-      this.activePatternsKanji = this.sanitizeKanjiPatterns(this.activePatternsKanji);
-    } else if (cardType === 'language') {
-      this.activePatternsLanguage = this.sanitizeLanguagePatterns(this.activePatternsLanguage);
-    } else {
-      this.activePatternsUniversal = this.sanitizeUniversalPatterns(this.activePatternsUniversal || this.activePatterns);
-      this.activePatterns = this.activePatternsUniversal;
-    }
+    // 出題パターンの初期化連動（切り替え先プロジェクトのカード種別に応じた初期パターンへリセット）
+    await this.resetPatternsToDefault();
 
     this.updateDeckTriggerButton();
     this.renderPatternSelector();
@@ -972,15 +947,44 @@ const StudyManager = {
   },
 
   /**
+   * 出題パターンを各モードの初期状態（語学: en_to_ja, 漢字: read_to_char, 汎用: front_to_back）へリセット
+   */
+  async resetPatternsToDefault() {
+    this.activePatternsKanji = ['read_to_char'];
+    this.activePatternsUniversal = ['front_to_back'];
+    this.activePatternsLanguage = ['en_to_ja'];
+
+    const cardType = this.getCurrentCardType();
+    if (cardType === 'kanji') {
+      this.activePatterns = this.activePatternsKanji;
+    } else if (cardType === 'language') {
+      this.activePatterns = this.activePatternsLanguage;
+    } else {
+      this.activePatterns = this.activePatternsUniversal;
+    }
+
+    await Storage.saveSetting('study_active_patterns_kanji', this.activePatternsKanji);
+    await Storage.saveSetting('study_active_patterns_universal', this.activePatternsUniversal);
+    await Storage.saveSetting('study_active_patterns_language', this.activePatternsLanguage);
+
+    this.renderPatternSelector();
+  },
+
+  /**
    * 出題パターン設定ボタン・モーダルの表示更新（語学6種/漢字6種/汎用2種 動的分離）
    */
   renderPatternSelector() {
+    const cardType = this.getCurrentCardType();
     this.activePatternsKanji = this.sanitizeKanjiPatterns(this.activePatternsKanji);
     this.activePatternsLanguage = this.sanitizeLanguagePatterns(this.activePatternsLanguage);
-    this.activePatternsUniversal = this.sanitizeUniversalPatterns(this.activePatternsUniversal || this.activePatterns);
-    this.activePatterns = this.activePatternsUniversal;
-
-    const cardType = this.getCurrentCardType();
+    this.activePatternsUniversal = this.sanitizeUniversalPatterns(this.activePatternsUniversal);
+    if (cardType === 'kanji') {
+      this.activePatterns = this.activePatternsKanji;
+    } else if (cardType === 'language') {
+      this.activePatterns = this.activePatternsLanguage;
+    } else {
+      this.activePatterns = this.activePatternsUniversal;
+    }
     let activeList = [];
     let totalCount = 2;
     let modalTitleText = '';
@@ -992,7 +996,7 @@ const StudyManager = {
       totalCount = 6;
       modalTitleText = '🎯 漢字 6大出題パターン';
       patternDict = this.KANJI_PATTERNS;
-      deselectText = '全解除 (字➔読のみ)';
+      deselectText = '全解除 (読➔字のみ)';
     } else if (cardType === 'language') {
       activeList = this.activePatternsLanguage;
       totalCount = 6;

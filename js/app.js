@@ -254,7 +254,7 @@ const App = {
     const cardType = (typeof StudyManager !== 'undefined' && StudyManager.getCurrentCardType)
       ? StudyManager.getCurrentCardType()
       : 'language';
-    const defaultPattern = cardType === 'kanji' ? 'char_to_read' : (cardType === 'general' ? 'front_to_back' : 'en_to_ja');
+    const defaultPattern = cardType === 'kanji' ? 'read_to_char' : (cardType === 'general' ? 'front_to_back' : 'en_to_ja');
     let checked = Array.from(document.querySelectorAll('input[name="pattern_checkbox"]:checked')).map(c => c.value);
 
     if (cardType === 'kanji') {
@@ -287,7 +287,7 @@ const App = {
     const cardType = (typeof StudyManager !== 'undefined' && StudyManager.getCurrentCardType)
       ? StudyManager.getCurrentCardType()
       : 'language';
-    const defaultPattern = cardType === 'kanji' ? 'char_to_read' : (cardType === 'general' ? 'front_to_back' : 'en_to_ja');
+    const defaultPattern = cardType === 'kanji' ? 'read_to_char' : (cardType === 'general' ? 'front_to_back' : 'en_to_ja');
     const checkboxes = document.querySelectorAll('input[name="pattern_checkbox"]');
     checkboxes.forEach(cb => cb.checked = selectAll);
     if (!selectAll) {
