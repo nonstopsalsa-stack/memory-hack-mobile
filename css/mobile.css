@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    MEMORY HACK MOBILE - Dark Cyber & Blox Fruits Theme
    Optimized for Android / Mobile Touch Ergonomics
    ========================================================================== */
@@ -3478,3 +3478,37 @@ html, body {
 [data-theme="light"] .kanji-compound-reading-val {
   color: #4f46e5 !important;
 }
+
+/* ==========================================================================
+   🎧 オートプレイヤーモード (Mobile v2.3.0)
+   ========================================================================== */
+.btn-auto-pause {
+  background: linear-gradient(135deg, #0284c7, #0369a1) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3) !important;
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+}
+.btn-auto-pause.is-paused {
+  background: linear-gradient(135deg, #d97706, #b45309) !important;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3) !important;
+  border-color: rgba(251, 191, 36, 0.5) !important;
+}
+.btn-auto-stop {
+  background: linear-gradient(135deg, #334155, #1e293b) !important;
+  color: #fca5a5 !important;
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+}
+.auto-play-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #38bdf8;
+  padding: 2px 6px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 6px;
+  margin-left: 4px;
+}
+

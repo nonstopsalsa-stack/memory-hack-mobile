@@ -74,6 +74,18 @@ const App = {
     document.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
 
+      if (typeof StudyManager !== 'undefined' && StudyManager.filterMode === 'auto_play' && StudyManager.isAutoPlaying) {
+        if (e.code === 'Space') {
+          e.preventDefault();
+          StudyManager.toggleAutoPlayPause();
+          return;
+        } else if (e.code === 'Escape') {
+          e.preventDefault();
+          StudyManager.stopAutoPlay(true);
+          return;
+        }
+      }
+
       if (e.code === 'Space') {
         e.preventDefault();
         StudyManager.flipCard();

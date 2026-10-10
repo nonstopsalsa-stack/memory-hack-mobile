@@ -23,6 +23,10 @@ const StudyManager = {
   currentKanjiQuestion: null,
   isFlipped: false,
   showAdvice: false,
+  isAutoPlaying: false,
+  isAutoPlayPaused: false,
+  autoPlayTimer: null,
+  autoPlayStep: 'idle',
 
   // 汎用フラッシュカード用2大出題パターン定義
   UNIVERSAL_PATTERNS: {
@@ -930,6 +934,15 @@ const StudyManager = {
     this.filterMode = mode;
     await Storage.saveSetting('study_filter_mode', mode);
     this.syncFilterModeUI();
+    if (this.filterMode === 'auto_play') {
+      this.isAutoPlaying = true;
+      this.isAutoPlayPaused = false;
+      if (typeof App !== 'undefined' && App.showToast) {
+        App.showToast('🎧 オートプレイヤーを開始しました', 'success');
+      }
+    } else {
+      this.stopAutoPlay(false);
+    }
     await this.buildQueue();
     this.showNextCard();
   },
@@ -1141,6 +1154,13 @@ const StudyManager = {
           this.queue = this.shuffle([...filtered]);
         }
 
+      } else if (this.filterMode === 'auto_play') {
+        // 6. 🎧 オートプレイヤー (auto_play)
+        this.queue = this.buildAutoPlayQueue(filtered);
+        if (this.queue.length === 0) {
+          this.queue = this.shuffle([...filtered]);
+        }
+
       } else {
         // 2. 全問ランダム (all_random)
         this.queue = this.shuffle([...filtered]);
@@ -1215,6 +1235,196 @@ const StudyManager = {
     return finalQueue;
   },
 
+  /**
+   * 🎧 オートプレイヤー用キュー構築（PCアプリ完全準拠）
+   * 1. sequenceNo が設定されているカードがある場合: 所属デッキごとに番号昇順(1→2→...→N)で整列
+   * 2. sequenceNo 未設定カードがある場合: 末尾にシャッフルして追加
+   * 3. sequenceNo が1枚も存在しない場合: 全問ランダムシャッフルでキューを構築
+   */
+  buildAutoPlayQueue(cards) {
+    if (!cards || cards.length === 0) return [];
+
+    const deckMap = new Map();
+    cards.forEach(c => {
+      Hierarchy.normalizeCard(c);
+      const dKey = c.deck || '一般';
+      if (!deckMap.has(dKey)) {
+        deckMap.set(dKey, []);
+      }
+      deckMap.get(dKey).push(c);
+    });
+
+    let hasAnySequence = false;
+    const finalQueue = [];
+    const allBlankCards = [];
+
+    deckMap.forEach((deckCards) => {
+      const seqItems = [];
+      const blankItems = [];
+
+      deckCards.forEach(c => {
+        const rawSeq = c.sequenceNo;
+        const num = (rawSeq !== undefined && rawSeq !== null && String(rawSeq).trim() !== '') ? Number(rawSeq) : null;
+        if (Number.isFinite(num) && num > 0) {
+          seqItems.push({ card: c, num });
+        } else {
+          blankItems.push(c);
+        }
+      });
+
+      if (seqItems.length > 0) {
+        hasAnySequence = true;
+        seqItems.sort((a, b) => a.num - b.num);
+        finalQueue.push(...seqItems.map(item => item.card));
+        if (blankItems.length > 0) {
+          finalQueue.push(...this.shuffle([...blankItems]));
+        }
+      } else {
+        allBlankCards.push(...blankItems);
+      }
+    });
+
+    if (hasAnySequence) {
+      if (allBlankCards.length > 0) {
+        finalQueue.push(...this.shuffle([...allBlankCards]));
+      }
+      return finalQueue;
+    } else {
+      return this.shuffle([...cards]);
+    }
+  },
+
+  /**
+   * オートプレイヤー専用タイマークリア
+   */
+  clearAutoPlayTimer() {
+    if (this.autoPlayTimer) {
+      clearTimeout(this.autoPlayTimer);
+      this.autoPlayTimer = null;
+    }
+  },
+
+  /**
+   * 現在のカードのオート再生（表面表示 ➔ 音声発話 ➔ 発話完了後に裏面めくり ➔ 1.8秒待機 ➔ 次カード）
+   */
+  playCurrentAutoCard() {
+    this.clearAutoPlayTimer();
+    if (!this.isAutoPlaying || this.isAutoPlayPaused) return;
+    if (!this.currentCard) return;
+
+    this.autoPlayStep = 'speaking';
+    let audioHandled = false;
+
+    const onAudioComplete = () => {
+      if (audioHandled) return;
+      audioHandled = true;
+      this.clearAutoPlayTimer();
+      if (!this.isAutoPlaying || this.isAutoPlayPaused) return;
+
+      // 1. 発話完了後に自動で裏面めくり（日本語訳）
+      this.autoPlayStep = 'flipped';
+      if (!this.isFlipped) {
+        this.flipCard(true);
+      }
+
+      // 2. 認知待機（約1.8秒）後に解答なしで次のカードへ進行
+      this.autoPlayTimer = setTimeout(() => {
+        if (!this.isAutoPlaying || this.isAutoPlayPaused) return;
+        this.autoPlayNextCard();
+      }, 1800);
+    };
+
+    const frontText = this.currentCard.front || '';
+    const safeTimeout = Math.max(3000, frontText.length * 120 + 2000);
+    this.autoPlayTimer = setTimeout(onAudioComplete, safeTimeout);
+
+    if (typeof AudioManager !== 'undefined' && AudioManager.speak) {
+      AudioManager.speak(frontText, {
+        lang: this.getCardLanguage(this.currentCard),
+        onEnd: onAudioComplete,
+        onError: onAudioComplete
+      });
+    } else {
+      onAudioComplete();
+    }
+  },
+
+  /**
+   * 解答なしで次のカードへ進行（学習記録スキップ）
+   */
+  autoPlayNextCard() {
+    this.clearAutoPlayTimer();
+    if (!this.isAutoPlaying) return;
+
+    if (this.currentIndex < this.queue.length - 1) {
+      this.currentIndex++;
+      this.currentCard = this.queue[this.currentIndex];
+      this.isFlipped = false;
+      this.showAdvice = false;
+      this.pickCurrentPattern();
+      this.renderCard();
+      this.updateStatsUI();
+      this.updateBottomActionButtons();
+      this.playCurrentAutoCard();
+    } else {
+      this.stopAutoPlay(false);
+      this.renderCompletedState();
+    }
+  },
+
+  /**
+   * 一時停止 / 再開の切り替え
+   */
+  toggleAutoPlayPause() {
+    if (this.filterMode !== 'auto_play') return;
+    this.isAutoPlayPaused = !this.isAutoPlayPaused;
+    this.updateBottomActionButtons();
+
+    if (this.isAutoPlayPaused) {
+      this.clearAutoPlayTimer();
+      if (typeof AudioManager !== 'undefined' && AudioManager.synth) {
+        AudioManager.synth.cancel();
+      }
+      if (typeof App !== 'undefined' && App.showToast) {
+        App.showToast('⏸️ オート再生を一時停止しました', 'info');
+      }
+    } else {
+      if (typeof App !== 'undefined' && App.showToast) {
+        App.showToast('▶️ オート再生を再開しました', 'success');
+      }
+      if (this.isFlipped) {
+        this.autoPlayTimer = setTimeout(() => {
+          if (!this.isAutoPlaying || this.isAutoPlayPaused) return;
+          this.autoPlayNextCard();
+        }, 1800);
+      } else {
+        this.playCurrentAutoCard();
+      }
+    }
+  },
+
+  /**
+   * オートプレイヤーの停止と通常モード復帰
+   */
+  async stopAutoPlay(revertToDue = true) {
+    this.isAutoPlaying = false;
+    this.isAutoPlayPaused = false;
+    this.autoPlayStep = 'idle';
+    this.clearAutoPlayTimer();
+    if (typeof AudioManager !== 'undefined' && AudioManager.synth) {
+      AudioManager.synth.cancel();
+    }
+
+    if (revertToDue) {
+      if (typeof App !== 'undefined' && App.showToast) {
+        App.showToast('⏹️ オート再生を停止し、通常出題へ復帰しました', 'info');
+      }
+      await this.setFilterMode('due');
+    } else {
+      this.updateBottomActionButtons();
+    }
+  },
+
   shuffle(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -1246,6 +1456,13 @@ const StudyManager = {
     // 画面描画
     this.renderCard();
 
+    if (this.filterMode === 'auto_play') {
+      if (this.isAutoPlaying && !this.isAutoPlayPaused) {
+        this.playCurrentAutoCard();
+      }
+      return;
+    }
+
     // 音声の自動再生処理
     if (this.autoPlayAudio && (this.currentPattern === 'audio_to_ja' || this.currentPattern === 'audio_to_en')) {
       setTimeout(() => {
@@ -1257,6 +1474,12 @@ const StudyManager = {
   pickCurrentPattern() {
     if (!this.currentCard) {
       this.currentPattern = 'front_to_back';
+      this.currentKanjiQuestion = null;
+      return;
+    }
+
+    if (this.filterMode === 'auto_play') {
+      this.currentPattern = 'en_to_ja';
       this.currentKanjiQuestion = null;
       return;
     }
@@ -1720,6 +1943,20 @@ const StudyManager = {
   updateBottomActionButtons() {
     const actionContainer = document.getElementById('bottom-action-bar');
     if (!actionContainer) return;
+
+    if (this.filterMode === 'auto_play') {
+      const pauseIcon = this.isAutoPlayPaused ? '▶️' : '⏸️';
+      const pauseLabel = this.isAutoPlayPaused ? '再開' : '一時停止';
+      actionContainer.innerHTML = `
+        <button class="btn-action btn-auto-pause ${this.isAutoPlayPaused ? 'is-paused' : ''}" onclick="StudyManager.toggleAutoPlayPause();">
+          <span class="action-icon">${pauseIcon}</span> ${pauseLabel}
+        </button>
+        <button class="btn-action btn-auto-stop" onclick="StudyManager.stopAutoPlay(true);">
+          <span class="action-icon">⏹️</span> 停止 (通常へ)
+        </button>
+      `;
+      return;
+    }
 
     if (!this.isFlipped) {
       // めくる前: 巨大な「答えを見る」ボタン

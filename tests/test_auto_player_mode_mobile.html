@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Auto Player Mobile E2E Test Suite</title>
+  <style>
+    body { font-family: monospace; background: #0b132b; color: #e2e8f0; padding: 20px; }
+    .log-item { margin: 6px 0; padding: 4px 8px; border-radius: 4px; }
+    .pass { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .fail { background: rgba(239, 68, 68, 0.2); color: #f87171; font-weight: bold; }
+    #test-logs { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>🎧 Auto Player Mobile Test Suite</h1>
+  <div id="test-logs"></div>
+
+  <!-- Mock DOM for Mobile -->
+  <select id="study-filter-mode">
+    <option value="due">due</option>
+    <option value="auto_play">auto_play</option>
+  </select>
+
+  <footer id="bottom-action-bar"></footer>
+
+  <div id="card-stage"></div>
+
+  <!-- Load Mobile Modules -->
+  <script src="../js/config.js"></script>
+  <script src="../js/audio.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/hierarchy.js"></script>
+  <script src="../js/srs.js"></script>
+  <script src="../js/study.js"></script>
+  <script src="../js/app.js"></script>
+
+  <script>
+    const logs = document.getElementById('test-logs');
+    let totalTests = 0;
+    let passedTests = 0;
+    let failedTests = 0;
+
+    Storage.getSetting = async (key, fallback) => fallback;
+    Storage.saveSetting = async () => {};
+    window.App = {
+      showToast: () => {}
+    };
+
+    function assert(name, condition, details = '') {
+      totalTests++;
+      const div = document.createElement('div');
+      if (condition) {
+        passedTests++;
+        div.className = 'log-item pass';
+        div.textContent = `[PASS] ${name}`;
+      } else {
+        failedTests++;
+        div.className = 'log-item fail';
+        div.textContent = `[FAIL] ${name} ${details ? ': ' + details : ''}`;
+      }
+      logs.appendChild(div);
+    }
+
+    async function runMobileTests() {
+      // ----------------------------------------------------
+      // TEST GROUP 1: StudyManager Auto-Play State
+      // ----------------------------------------------------
+      assert('1.1 StudyManager initializes auto-play properties',
+        StudyManager.isAutoPlaying === false &&
+        StudyManager.isAutoPlayPaused === false &&
+        StudyManager.autoPlayStep === 'idle'
+      );
+
+      // ----------------------------------------------------
+      // TEST GROUP 2: Mobile Queue Building (sequenceNo Ascending)
+      // ----------------------------------------------------
+      const testCards = [
+        { id: 'm3', deck: 'Skit 1', sequenceNo: 3, front: 'Good afternoon.', back: 'こんにちは。' },
+        { id: 'm1', deck: 'Skit 1', sequenceNo: 1, front: 'Good morning.', back: 'おはようございます。' },
+        { id: 'm2', deck: 'Skit 1', sequenceNo: 2, front: 'How are you?', back: 'お元気ですか？' },
+        { id: 'm0', deck: 'Skit 1', sequenceNo: '', front: 'Nice to meet you.', back: '初めまして。' }
+      ];
+
+      const queue = StudyManager.buildAutoPlayQueue(testCards);
+      assert('2.1 buildAutoPlayQueue sorts by sequenceNo ascending (1, 2, 3)',
+        queue.length === 4 &&
+        queue[0].id === 'm1' &&
+        queue[1].id === 'm2' &&
+        queue[2].id === 'm3' &&
+        queue[3].id === 'm0'
+      );
+
+      const testNoSeq = [
+        { id: 'a1', deck: 'Deck X', front: 'Word 1', back: '意味1' },
+        { id: 'a2', deck: 'Deck X', front: 'Word 2', back: '意味2' }
+      ];
+      const queueNoSeq = StudyManager.buildAutoPlayQueue(testNoSeq);
+      assert('2.2 buildAutoPlayQueue shuffles when no sequenceNo exists',
+        queueNoSeq.length === 2 &&
+        queueNoSeq.some(c => c.id === 'a1') &&
+        queueNoSeq.some(c => c.id === 'a2')
+      );
+
+      // ----------------------------------------------------
+      // TEST GROUP 3: En-to-Ja Pattern Forcing
+      // ----------------------------------------------------
+      StudyManager.filterMode = 'auto_play';
+      StudyManager.currentCard = { id: 'm1', front: 'Hello', back: 'こんにちは', type: 'kanji' };
+      StudyManager.pickCurrentPattern();
+      assert('3.1 pickCurrentPattern forces en_to_ja in auto_play mode',
+        StudyManager.currentPattern === 'en_to_ja' &&
+        StudyManager.currentKanjiQuestion === null
+      );
+
+      // ----------------------------------------------------
+      // TEST GROUP 4: Bottom Action Bar Controls
+      // ----------------------------------------------------
+      StudyManager.isAutoPlaying = true;
+      StudyManager.isAutoPlayPaused = false;
+      StudyManager.updateBottomActionButtons();
+
+      const bottomBar = document.getElementById('bottom-action-bar');
+      const pauseBtn = bottomBar.querySelector('.btn-auto-pause');
+      const stopBtn = bottomBar.querySelector('.btn-auto-stop');
+
+      assert('4.1 updateBottomActionButtons renders auto-play controls in bottom bar',
+        pauseBtn !== null && stopBtn !== null
+      );
+      assert('4.2 Pause button has pause icon and label',
+        pauseBtn.textContent.includes('一時停止')
+      );
+
+      // Pause toggle
+      StudyManager.toggleAutoPlayPause();
+      const pausedBtn = bottomBar.querySelector('.btn-auto-pause');
+      assert('4.3 toggleAutoPlayPause switches to paused state',
+        StudyManager.isAutoPlayPaused === true &&
+        pausedBtn && pausedBtn.textContent.includes('再開'),
+        `isPaused=${StudyManager.isAutoPlayPaused}, btnText=${pausedBtn ? pausedBtn.textContent : 'null'}`
+      );
+
+      // Resume toggle
+      StudyManager.toggleAutoPlayPause();
+      const resumedBtn = bottomBar.querySelector('.btn-auto-pause');
+      assert('4.4 toggleAutoPlayPause switches back to playing state',
+        StudyManager.isAutoPlayPaused === false &&
+        resumedBtn && resumedBtn.textContent.includes('一時停止'),
+        `isPaused=${StudyManager.isAutoPlayPaused}, btnText=${resumedBtn ? resumedBtn.textContent : 'null'}`
+      );
+
+      // Stop & revert
+      await StudyManager.stopAutoPlay(true);
+      assert('4.5 stopAutoPlay stops auto-player and reverts to due filter mode',
+        StudyManager.isAutoPlaying === false &&
+        StudyManager.filterMode === 'due'
+      );
+
+      // ----------------------------------------------------
+      // Summary
+      // ----------------------------------------------------
+      const summaryDiv = document.createElement('div');
+      summaryDiv.style.marginTop = '20px';
+      summaryDiv.style.fontWeight = 'bold';
+      summaryDiv.style.fontSize = '1.2rem';
+      if (failedTests === 0) {
+        summaryDiv.style.color = '#34d399';
+        summaryDiv.textContent = `🎉 ALL ${totalTests} MOBILE TESTS PASSED PERFECTLY!`;
+      } else {
+        summaryDiv.style.color = '#f87171';
+        summaryDiv.textContent = `❌ ${failedTests} OF ${totalTests} TESTS FAILED!`;
+      }
+      logs.appendChild(summaryDiv);
+    }
+
+    window.addEventListener('DOMContentLoaded', runMobileTests);
+  </script>
+</body>
+</html>
