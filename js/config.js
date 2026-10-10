@@ -10,7 +10,7 @@ window.APP_CONFIG = {
   // 音声の初期読み上げ速度 (0.9 = やや聞き取りやすい自然な速度)
   speechRate: 0.9,
   // アプリバージョン
-  version: "v2.2.8"
+  version: "v2.3.0"
 };
 
 // 10言語メタデータレジストリ (PC Master System 完全互換)

@@ -10,7 +10,7 @@
  */
 
 const StudyManager = {
-  version: 'v2.2.8',
+  version: 'v2.3.0',
   allCards: [],
   projects: [],
   activeProjectId: 'deck_default',
