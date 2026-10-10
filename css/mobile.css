@@ -3480,7 +3480,7 @@ html, body {
 }
 
 /* ==========================================================================
-   🎧 オートプレイヤーモード (Mobile v2.3.0)
+   🎧 オートプレイヤーモード (Mobile v2.3.1)
    ========================================================================== */
 .btn-auto-pause {
   background: linear-gradient(135deg, #0284c7, #0369a1) !important;
@@ -3512,3 +3512,20 @@ html, body {
   margin-left: 4px;
 }
 
+/* ==========================================================================
+   v2.3.1: 文章=左 / 単語・熟語=中央（.card-prompt-text span の中央固定規則にも勝つ）
+   ========================================================================== */
+.card-prompt-text.align-left, .card-prompt-text.align-left span,
+.card-answer-main.align-left, .card-answer-sub.align-left { text-align: left !important; }
+.card-prompt-text.align-center, .card-prompt-text.align-center span,
+.card-answer-main.align-center, .card-answer-sub.align-center { text-align: center !important; }
+
+.card-answer-row.align-left { justify-content: flex-start; }
+.card-answer-row.align-left .card-answer-main { flex: 1 1 auto; min-width: 0; }
+.card-answer-row.align-center { justify-content: center; }
+
+.speaker-row { display: flex; width: 100%; margin-top: 8px; }
+.speaker-row.align-center { justify-content: center; }
+.speaker-row.align-left { justify-content: flex-start; }
+
+.card-prompt-container > .audio-prompt-box { margin: 0 auto; }

@@ -10,7 +10,7 @@
  */
 
 const StudyManager = {
-  version: 'v2.3.0',
+  version: 'v2.3.1',
   allCards: [],
   projects: [],
   activeProjectId: 'deck_default',
@@ -136,6 +136,59 @@ const StudyManager = {
     if (len <= 45) return 'text-large';
     if (len <= 120) return 'text-medium';
     return 'text-content';
+  },
+
+  /**
+   * 文章判定: itemType優先、無ければ buildQueue と同一基準
+   */
+  isSentenceCard(card) {
+    if (!card) return false;
+    const type = String(card.itemType || '').toLowerCase();
+    if (type === 'sentence') return true;
+    if (type === 'word' || type === 'phrase') return false;
+    const front = String(card.front || '').trim();
+    if (!front) return false;
+    if (/[.?!。？！…]$/.test(front)) return true;
+    return front.split(/\s+/).length > 4;
+  },
+
+  /**
+   * 整列クラス: 文章→left / 表示本文に明示改行あり→left / それ以外(単語・熟語)→center
+   */
+  getAlignClass(card, displayText) {
+    if (this.isSentenceCard(card)) return 'align-left';
+    if (/\n/.test(String(displayText || '').trim())) return 'align-left';
+    return 'align-center';
+  },
+
+  /**
+   * 言語名（括弧書き除去: '英語 (アメリカ)' → '英語'）
+   */
+  getGuideLangName(card) {
+    try {
+      const langKey = this.getCardLanguage(card);
+      const registry = window.SUPPORTED_LANGUAGES || (typeof SUPPORTED_LANGUAGES !== 'undefined' ? SUPPORTED_LANGUAGES : {});
+      const meta = registry[langKey] || null;
+      if (meta && meta.name) {
+        return meta.name.replace(/\s*[（(].*?[）)]\s*/g, '');
+      }
+    } catch (e) {}
+    return '英語';
+  },
+
+  /**
+   * ガイドHTML（既存 guide-ja スタイル流用・空白なし1行）
+   */
+  buildGuideHtml(label) {
+    return `<div class="card-target-guide guide-ja"><span class="card-flow-arrow">══▶</span><span class="card-target-box">${label}</span></div>`;
+  },
+
+  /**
+   * 発音ボタン行（アイコンのみ。align: 'align-left'|'align-center'）
+   */
+  buildSpeakerRow(align) {
+    const alignClass = align || 'align-center';
+    return `<div class="speaker-row ${alignClass}"><button class="speaker-btn" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く" aria-label="発音を聞く">🔊</button></div>`;
   },
 
   /**
@@ -1666,6 +1719,8 @@ const StudyManager = {
     const card = this.currentCard;
     const pattern = this.currentPattern;
     const patternInfo = this.getPatternInfo(pattern);
+    const isLang = this.getCurrentCardType() === 'language';
+    const langName = isLang ? this.getGuideLangName(card) : '英語';
 
     let questionHtml = '';
     let answerHtml = '';
@@ -1710,10 +1765,15 @@ const StudyManager = {
       if (!this.isFlipped) {
         // ===== 表面（問題） =====
         if (isAudioMode) {
+          const guideLabel = (pattern === 'audio_to_en') ? `${langName}で` : '🇯🇵 日本語訳';
+          const guideHtml = isLang ? this.buildGuideHtml(guideLabel) : '';
           questionHtml = `
-            <div class="audio-prompt-box" onclick="StudyManager.playCardAudio(); event.stopPropagation();">
-              <span class="audio-pulse-icon">🔊</span>
-              <div class="audio-prompt-text">タップして発音を聞く</div>
+            <div class="card-prompt-container">
+              <div class="audio-prompt-box" onclick="StudyManager.playCardAudio(); event.stopPropagation();">
+                <span class="audio-pulse-icon">🔊</span>
+                <div class="audio-prompt-text">タップして発音を聞く</div>
+              </div>
+              ${guideHtml}
             </div>
           `;
         } else if (pattern === 'back_to_front') {
@@ -1733,9 +1793,13 @@ const StudyManager = {
           const text = card.back || '';
           const fontClass = this.getFontScaleClass(text);
           const imgHtml = this.renderImageHtml(card.backImage);
+          const alignClass = isLang ? this.getAlignClass(card, text) : '';
+          const guideLabel = (pattern === 'ja_to_en') ? `${langName}で発音/作文を` : `${langName}で発音`;
+          const guideHtml = isLang ? this.buildGuideHtml(guideLabel) : '';
           questionHtml = `
             <div class="card-prompt-container">
-              <div class="card-prompt-text ja ${fontClass}">${escapeHtml(text)}</div>
+              <div class="card-prompt-text ja ${fontClass}${alignClass ? ' ' + alignClass : ''}">${escapeHtml(text)}</div>
+              ${guideHtml}
               ${imgHtml}
             </div>
           `;
@@ -1746,24 +1810,36 @@ const StudyManager = {
           const fontClass = this.getFontScaleClass(cleanText);
           const imgHtml = this.renderImageHtml(card.frontImage);
           const hasVoice = (card.voiceType && card.voiceType !== 'none') || pattern === 'en_to_ja';
-          const isEnToJa = pattern === 'en_to_ja';
-          const guideHtml = isEnToJa ? `
-            <div class="card-target-guide guide-ja" style="margin-top: 12px;">
-              <span class="card-flow-arrow">══▶</span>
-              <span class="card-target-box">🇯🇵 日本語訳</span>
-            </div>` : '';
-          const textHtml = cleanText.trim() ? `
-            <div class="card-prompt-text ${fontClass}">
-              <span>${escapeHtml(cleanText)}</span>
-              ${hasVoice ? `<button class="speaker-btn" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く">🔊</button>` : ''}
-            </div>` : '';
-          questionHtml = `
-            <div class="card-prompt-container">
-              ${textHtml}
-              ${guideHtml}
-              ${imgHtml}
-            </div>
-          `;
+          if (isLang) {
+            const alignClass = this.getAlignClass(card, cleanText);
+            const guideLabel = (pattern === 'en_to_audio') ? `${langName}で発音` : '🇯🇵 日本語訳';
+            const guideHtml = this.buildGuideHtml(guideLabel);
+            const speakerHtml = (hasVoice && cleanText.trim()) ? this.buildSpeakerRow(alignClass) : '';
+            const textHtml = cleanText.trim() ? `<div class="card-prompt-text ${fontClass} ${alignClass}"><span>${escapeHtml(cleanText)}</span></div>` : '';
+            questionHtml = `
+              <div class="card-prompt-container">
+                ${textHtml}
+                ${speakerHtml}
+                ${guideHtml}
+                ${imgHtml}
+              </div>
+            `;
+          } else {
+            const isEnToJa = pattern === 'en_to_ja';
+            const guideHtml = isEnToJa ? `
+              <div class="card-target-guide guide-ja" style="margin-top: 12px;">
+                <span class="card-flow-arrow">══▶</span>
+                <span class="card-target-box">🇯🇵 日本語訳</span>
+              </div>` : '';
+            const textHtml = cleanText.trim() ? `<div class="card-prompt-text ${fontClass}"><span>${escapeHtml(cleanText)}</span>${hasVoice ? `<button class="speaker-btn" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く">🔊</button>` : ''}</div>` : '';
+            questionHtml = `
+              <div class="card-prompt-container">
+                ${textHtml}
+                ${guideHtml}
+                ${imgHtml}
+              </div>
+            `;
+          }
         }
       } else {
         // ===== 裏面（解答） =====
@@ -1791,23 +1867,19 @@ const StudyManager = {
               </div>
             ` : ''}
           `;
-        } else if (pattern === 'ja_to_en') {
+        } else if (pattern === 'ja_to_en' || (isLang && (pattern === 'ja_to_audio' || pattern === 'en_to_audio'))) {
           const ansText = card.front || '';
           const fontClass = this.getFontScaleClass(ansText);
           const imgHtml = this.renderImageHtml(card.frontImage);
+          const alignClass = isLang ? this.getAlignClass(card, ansText) : 'align-center';
+          const alignSubClass = isLang ? this.getAlignClass(card, card.back) : '';
           answerHtml = `
             <div class="card-answer-block">
-              <div class="card-answer-row">
-                <div class="card-answer-main en ${fontClass}">
-                  ${escapeHtml(ansText)}
-                </div>
-                <button class="speaker-btn" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く">
-                  🔊
-                </button>
+              <div class="card-answer-row ${alignClass}">
+                <div class="card-answer-main en ${fontClass} ${alignClass}">${escapeHtml(ansText)}</div>
+                <button class="speaker-btn" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く" aria-label="発音を聞く">🔊</button>
               </div>
-              <div class="card-answer-sub">
-                ${escapeHtml(card.back)}
-              </div>
+              <div class="card-answer-sub${alignSubClass ? ' ' + alignSubClass : ''}">${escapeHtml(card.back)}</div>
               ${imgHtml}
             </div>
             ${card.example ? `
@@ -1836,17 +1908,13 @@ const StudyManager = {
           const fontClass = this.getFontScaleClass(ansText);
           const imgHtml = this.renderImageHtml(card.backImage);
           const hasVoice = (card.voiceType && card.voiceType !== 'none') || pattern === 'en_to_ja';
+          const alignClass = isLang ? this.getAlignClass(card, ansText) : '';
+          const speakerHtml = hasVoice ? this.buildSpeakerRow(isLang ? alignClass : 'align-center') : '';
           answerHtml = `
             <div class="card-answer-block" style="text-align: center; padding: 10px 4px;">
               <div class="card-answer-badge" style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">🎯 解答</div>
-              <div class="card-answer-main ${fontClass}">
-                ${escapeHtml(ansText)}
-              </div>
-              ${hasVoice ? `
-                <div style="margin-top: 6px;">
-                  <button class="speaker-btn" onclick="StudyManager.playCardAudio(); event.stopPropagation();" title="発音を聞く">🔊 発音を聞く</button>
-                </div>
-              ` : ''}
+              <div class="card-answer-main ${fontClass}${alignClass ? ' ' + alignClass : ''}">${escapeHtml(ansText)}</div>
+              ${speakerHtml}
               ${imgHtml}
             </div>
             ${card.example ? `
