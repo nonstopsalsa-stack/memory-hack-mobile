@@ -209,9 +209,11 @@ const Hierarchy = {
               const count = allCards.filter(c => (c.projectDeckId || 'deck_default') === p.id).length;
               return `
                 <button class="tier0-pill ${isActive ? 'active' : ''}" data-project-id="${this.escapeHtml(p.id)}" type="button">
-                  <span class="tier0-pill-icon">${p.icon || '📁'}</span>
+                  <span class="tier0-pill-top">
+                    <span class="tier0-pill-icon">${p.icon || '📁'}</span>
+                    <span class="tier0-pill-count">(${count}枚)</span>
+                  </span>
                   <span class="tier0-pill-name">${this.escapeHtml(p.name)}</span>
-                  <span class="tier0-pill-count">(${count}枚)</span>
                   ${isActive ? '<span class="tier0-pill-check">✓</span>' : ''}
                 </button>
               `;
