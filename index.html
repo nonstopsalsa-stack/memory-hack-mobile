@@ -229,57 +229,64 @@
         <button class="modal-close-btn" onclick="App.closeModal('modal-settings')">✕</button>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Master System (GAS Webhook URL)</label>
-        <input type="url" id="setting-webhook-url" class="form-input" placeholder="https://script.google.com/macros/s/..." />
-        <small style="color: var(--color-text-muted); font-size: 0.7rem; margin-top: 2px;">
-          ※ 親PC（Master System）と同じGAS URLを指定することで、カードデータが自動受信されます。
-        </small>
+      <div class="modal-settings-body">
+        <!-- ① ビジュアルテーマ -->
+        <div class="form-group">
+          <label class="form-label" style="font-weight: 700; color: var(--color-cyan);">🎨 ビジュアルテーマ</label>
+          <select id="setting-mobile-theme" class="mobile-select" style="width: 100%; margin-top: 4px;" onchange="App.applyTheme(this.value)">
+            <option value="light">ライト</option>
+            <option value="dark">ダーク</option>
+            <option value="bloxfruits">Roblox</option>
+            <option value="muichiro">鬼滅（無一郎）</option>
+          </select>
+        </div>
+
+        <!-- ② スマホ利用者 (プロファイル) -->
+        <div class="form-group" style="margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+          <label class="form-label" style="font-weight: 700; color: var(--color-cyan);">👤 このスマホの利用者 (プロファイル)</label>
+          <select id="setting-device-profile" class="mobile-select" style="width: 100%; margin-top: 4px;">
+            <option value="all">🌐 すべて (全員分の教材を受信)</option>
+            <option value="father">👑 自分 (哲生)</option>
+            <option value="son">👦 息子 (陽哲)</option>
+            <option value="daughter">👧 娘 (恵蓮)</option>
+            <option value="mother">👩 妻</option>
+            <option value="guest">🌐 外部</option>
+          </select>
+          <small style="color: var(--color-text-muted); font-size: 0.7rem; margin-top: 2px; display: block;">
+            ※ 設定後、「同期」を押すと、指定したメンバー宛ての教材だけに自動仕分けされます。
+          </small>
+        </div>
+
+        <!-- ③ 音声自動再生チェックボックス -->
+        <div class="form-group" style="margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+          <label class="form-checkbox-label">
+            <input type="checkbox" id="setting-auto-audio" checked />
+            <span>🔊 音声を自動再生する (リスニング出題時・解答表示時)</span>
+          </label>
+        </div>
+
+        <!-- ④ キャッシュ全消去 -->
+        <div class="form-group" style="margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+          <label class="form-label" style="color: var(--color-accent-blue);">🔄 アプリの強制最新化</label>
+          <button type="button" class="btn-modal-action" style="width: 100%; border-color: var(--color-accent-blue); color: var(--color-accent-blue);" onclick="App.forceRefresh()">
+            🗑️ キャッシュを全消去して最新版を取得
+          </button>
+          <small style="color: var(--color-text-muted); font-size: 0.7rem; margin-top: 4px; display: block;">
+            ※ カードの表示が変わらないなど、端末の古いキャッシュが残っている場合に実行してください。
+          </small>
+        </div>
+
+        <!-- ⑤ GAS URL -->
+        <div class="form-group" style="margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+          <label class="form-label">Master System (GAS Webhook URL)</label>
+          <input type="url" id="setting-webhook-url" class="form-input" placeholder="https://script.google.com/macros/s/..." />
+          <small style="color: var(--color-text-muted); font-size: 0.7rem; margin-top: 2px; display: block;">
+            ※ 親PC（Master System）と同じGAS URLを指定することで、カードデータが自動受信されます。
+          </small>
+        </div>
       </div>
 
-      <div class="form-group" style="margin-top: 0.5rem;">
-        <label class="form-checkbox-label">
-          <input type="checkbox" id="setting-auto-audio" checked />
-          <span>🔊 音声を自動再生する (リスニング出題時・解答表示時)</span>
-        </label>
-      </div>
-
-      <!-- 利用者プロファイル設定 (家族マルチアカウント仕分け) -->
-      <div class="form-group" style="margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
-        <label class="form-label" style="font-weight: 700; color: var(--color-cyan);">👤 このスマホの利用者 (プロファイル)</label>
-        <select id="setting-device-profile" class="mobile-select" style="width: 100%; margin-top: 4px;">
-          <option value="all">🌐 すべて (全員分の教材を受信)</option>
-          <option value="father">👑 自分 (哲生)</option>
-          <option value="son">👦 息子 (陽哲)</option>
-          <option value="daughter">👧 娘 (恵蓮)</option>
-          <option value="mother">👩 妻</option>
-          <option value="guest">🌐 外部</option>
-        </select>
-        <small style="color: var(--color-text-muted); font-size: 0.7rem; margin-top: 2px; display: block;">
-          ※ 設定後、「同期」を押すと、指定したメンバー宛ての教材だけに自動仕分けされます。
-        </small>
-      </div>
-
-      <!-- テーマ設定 -->
-      <div class="form-group" style="margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
-        <label class="form-label" style="font-weight: 700; color: var(--color-cyan);">🎨 ビジュアルテーマ</label>
-        <select id="setting-mobile-theme" class="mobile-select" style="width: 100%; margin-top: 4px;" onchange="App.applyTheme(this.value)">
-          <option value="light">ライト</option>
-          <option value="dark">ダーク</option>
-          <option value="bloxfruits">Roblox</option>
-          <option value="muichiro">鬼滅（無一郎）</option>
-        </select>
-      </div>
-<div class="form-group" style="margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--color-border);">
-        <label class="form-label" style="color: var(--color-accent-blue);">🔄 アプリの強制最新化</label>
-        <button type="button" class="btn-modal-action" style="width: 100%; border-color: var(--color-accent-blue); color: var(--color-accent-blue);" onclick="App.forceRefresh()">
-          🗑️ キャッシュを全消去して最新版を取得
-        </button>
-        <small style="color: var(--color-text-muted); font-size: 0.7rem; margin-top: 4px; display: block;">
-          ※ カードの表示が変わらないなど、端末の古いキャッシュが残っている場合に実行してください。
-        </small>
-      </div>
-
+      <!-- ⑥ キャンセル・保存ボタンバー -->
       <div class="modal-actions-bar" style="margin-top: 1rem;">
         <button class="btn-modal-action" onclick="App.closeModal('modal-settings')">キャンセル</button>
         <button class="btn-modal-action primary" onclick="App.saveSettings()">保存する</button>

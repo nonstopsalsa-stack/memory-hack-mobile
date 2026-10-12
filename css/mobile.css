@@ -964,6 +964,27 @@ html, body {
   cursor: pointer;
 }
 
+/* ==========================================================================
+   Modal Settings: Pinned Footer Layout (設定モーダル固定フッター)
+   ========================================================================== */
+#modal-settings .modal-sheet {
+  overflow: hidden;
+}
+
+#modal-settings .modal-header {
+  flex-shrink: 0;
+}
+
+#modal-settings .modal-settings-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+#modal-settings .modal-actions-bar {
+  flex-shrink: 0;
+}
+
 /* Toast */
 .toast {
   position: fixed;
