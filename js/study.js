@@ -1718,7 +1718,6 @@ const StudyManager = {
 
     const card = this.currentCard;
     const pattern = this.currentPattern;
-    const patternInfo = this.getPatternInfo(pattern);
     const isLang = this.getCurrentCardType() === 'language';
     const langName = isLang ? this.getGuideLangName(card) : '英語';
 
@@ -1949,9 +1948,6 @@ const StudyManager = {
       <div class="study-card-wrapper" id="study-card-wrapper">
         <div class="study-card ${this.isFlipped ? 'is-flipped' : ''}" onclick="StudyManager.flipCard(false);">
           <div class="card-top-info">
-            <div class="quest-badge ${patternInfo.badgeClass}">
-              ${patternInfo.badgeText}
-            </div>
             <div class="card-top-right">
               ${modeBadge}
               <div class="deck-tag">${escapeHtml(card.deck || card.category1 || 'デッキ')}</div>
