@@ -101,8 +101,8 @@ Assert-Check "4.8 mobile.css prompt text uses high-contrast slate dark (#0f172a)
 $hasCardAnswerSlate = $css -match '\[data-theme="muichiro"\]\s+\.card-answer-main[^\{]*\{[^}]*color:\s*#0f172a\s*!important'
 Assert-Check "4.9 mobile.css answer text uses high-contrast slate dark (#0f172a)" ($hasCardAnswerSlate)
 
-$hasKanjiValSlate = $css -match '\[data-theme="muichiro"\]\s+\.kanji-answer-val\s*\{[^}]*color:\s*#0f172a\s*!important'
-Assert-Check "4.10 mobile.css kanji-answer-val uses high-contrast slate dark (#0f172a)" ($hasKanjiValSlate)
+$hasKanjiValTeal = $css -match '\[data-theme="muichiro"\]\s+\.kanji-answer-val\s*\{[^}]*color:\s*#0f766e\s*!important'
+Assert-Check "4.10 mobile.css kanji-answer-val uses high-contrast teal (#0f766e)" ($hasKanjiValTeal)
 
 # 4.6 Control strip: White chip background + turquoise border (#14b8a6)
 $hasChipsTurquoise = $css -match '\[data-theme="muichiro"\]\s+\.deck-chip-btn[^\{]*\{[^}]*background:\s*#ffffff[^}]*border:\s*1\.5px solid #14b8a6'

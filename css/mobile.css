@@ -3165,7 +3165,7 @@ html, body {
 }
 
 .kanji-answer-label {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #94a3b8; /* スレートグレー（控えめサイズ） */
   letter-spacing: 0.04em;
@@ -3173,8 +3173,8 @@ html, body {
 }
 
 .kanji-answer-val {
-  font-size: 1.75rem;
-  font-weight: 800;
+  font-size: 2rem;
+  font-weight: 900;
   color: #ffffff; /* 高輝度ホワイト */
   text-shadow: 0 0 14px rgba(56, 189, 248, 0.5), 0 0 24px rgba(56, 189, 248, 0.25); /* 光彩 */
   letter-spacing: 0.04em;
@@ -3187,8 +3187,12 @@ html, body {
 }
 
 [data-theme="bloxfruits"] .kanji-answer-val {
-  color: #ffffff;
-  text-shadow: 0 0 16px rgba(56, 189, 248, 0.65), 0 0 28px rgba(14, 165, 233, 0.35);
+  color: #ffd24a;
+  text-shadow: 0 0 16px rgba(255, 210, 74, 0.45);
+}
+
+[data-theme="bloxfruits"] .reading-val {
+  color: #ffd24a;
 }
 
 /* dark テーマでの視認性 */
@@ -3197,8 +3201,12 @@ html, body {
 }
 
 [data-theme="dark"] .kanji-answer-val {
-  color: #ffffff;
-  text-shadow: 0 0 14px rgba(56, 189, 248, 0.5);
+  color: #7dd3fc;
+  text-shadow: 0 0 14px rgba(125, 211, 252, 0.4);
+}
+
+[data-theme="dark"] .reading-val {
+  color: #7dd3fc;
 }
 
 /* ライトテーマ対応: 保護色化（白飛び）防止・高コントラスト定義 */
@@ -3207,8 +3215,12 @@ html, body {
 }
 
 [data-theme="light"] .kanji-answer-val {
-  color: #0f172a !important; /* スレートダーク高コントラスト */
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) !important;
+  color: #4338ca !important; /* インディゴ高コントラスト */
+  text-shadow: none !important;
+}
+
+[data-theme="light"] .reading-val {
+  color: #4338ca !important;
 }
 
 /* Muichiro Theme: High-contrast slate overrides */
@@ -3217,8 +3229,12 @@ html, body {
 }
 
 [data-theme="muichiro"] .kanji-answer-val {
-  color: #0f172a !important; /* Slate dark contrast */
+  color: #0f766e !important; /* ティール高コントラスト */
   text-shadow: none !important;
+}
+
+[data-theme="muichiro"] .reading-val {
+  color: #0f766e !important;
 }
 
 [data-theme="muichiro"] .kanji-sentence-answer-flow {
@@ -3293,18 +3309,27 @@ html, body {
 }
 
 .reading-tag-on {
+  font-size: 0.8rem;
   color: #f59e0b;
   font-weight: bold;
 }
 
 .reading-tag-kun {
+  font-size: 0.8rem;
   color: #38bdf8;
   font-weight: bold;
 }
 
 .reading-tag-mean {
+  font-size: 0.8rem;
   color: #10b981;
   font-weight: bold;
+}
+
+.reading-val {
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1.25;
 }
 
 .kanji-sentence-box {

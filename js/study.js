@@ -694,9 +694,9 @@ const StudyManager = {
     const kunStr = readings.kunReadings.join('、') || '—';
     q.fullReadingsHtml = `
       <div class="kanji-readings-grid">
-        <span class="reading-tag-on">【音】</span><span>${escapeHtml(onStr)}</span>
-        <span class="reading-tag-kun">【訓】</span><span>${escapeHtml(kunStr)}</span>
-        ${readings.meaning ? `<span class="reading-tag-mean">【意】</span><span>${escapeHtml(readings.meaning)}</span>` : ''}
+        <span class="reading-tag-on">【音】</span><span class="reading-val">${escapeHtml(onStr)}</span>
+        <span class="reading-tag-kun">【訓】</span><span class="reading-val">${escapeHtml(kunStr)}</span>
+        ${readings.meaning ? `<span class="reading-tag-mean">【意】</span><span class="reading-val">${escapeHtml(readings.meaning)}</span>` : ''}
       </div>
     `;
 
