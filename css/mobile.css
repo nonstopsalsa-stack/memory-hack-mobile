@@ -3155,6 +3155,7 @@ html, body {
   gap: 8px 16px;
   margin-bottom: 6px;
   padding: 4px 0;
+  width: 100%;
 }
 
 .kanji-answer-item {
@@ -3264,19 +3265,30 @@ html, body {
   user-select: none;
 }
 
+.card-prompt-target .target-kanji-huge,
+.card-answer-main .target-kanji-huge {
+  display: block;
+  width: 100%;
+  text-align: center;
+  white-space: normal;
+}
+
 .kanji-readings-grid {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto auto;
+  justify-content: center;
   gap: 6px 12px;
+  column-gap: 10px;
   background: rgba(15, 23, 42, 0.4);
   padding: 10px 14px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 0.92rem;
   text-align: left;
-  margin: 8px 0;
+  margin: 8px auto;
   color: #e2e8f0;
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
   box-sizing: border-box;
 }
 

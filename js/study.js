@@ -1728,25 +1728,23 @@ const StudyManager = {
     if (isKanji) {
       const kq = this.currentKanjiQuestion || this.pickKanjiQuestion(card, pattern);
       this.currentKanjiQuestion = kq;
+      const cleanPrompt = String(kq.displayPrompt || '').trim();
+      const cleanGuide = String(kq.guideText || '').trim();
+      const cleanAnswerMain = String(kq.answerMain || '').trim();
+      const cleanAnswerSub = String(kq.answerSub || '').trim();
       if (!this.isFlipped) {
         questionHtml = `
           <div class="card-prompt-container">
-            <div class="card-prompt-target">
-              ${kq.displayPrompt}
-            </div>
-            <div class="card-target-guide">
-              ${kq.guideText}
-            </div>
+            <div class="card-prompt-target">${cleanPrompt}</div>
+            <div class="card-target-guide">${cleanGuide}</div>
           </div>
         `;
       } else {
         answerHtml = `
-          <div class="card-answer-block">
+          <div class="card-answer-block" style="text-align: center;">
             <div class="card-answer-badge">🎯 正解</div>
-            <div class="card-answer-main">
-              ${kq.answerMain}
-            </div>
-            ${kq.answerSub}
+            <div class="card-answer-main">${cleanAnswerMain}</div>
+            ${cleanAnswerSub}
           </div>
           ${card.advice ? `
             <div class="advice-accordion expanded">
