@@ -692,23 +692,12 @@ const StudyManager = {
 
     const onStr = readings.onReadings.join('、') || '—';
     const kunStr = readings.kunReadings.join('、') || '—';
-    q.fullReadingsHtml = `
-      <div class="kanji-readings-grid">
-        <span class="reading-tag-on">【音】</span><span class="reading-val">${escapeHtml(onStr)}</span>
-        <span class="reading-tag-kun">【訓】</span><span class="reading-val">${escapeHtml(kunStr)}</span>
-        ${readings.meaning ? `<span class="reading-tag-mean">【意】</span><span class="reading-val">${escapeHtml(readings.meaning)}</span>` : ''}
-      </div>
-    `;
+    q.fullReadingsHtml = `<div class="kanji-readings-grid"><span class="reading-tag-on">【音】</span><span class="reading-val">${escapeHtml(onStr)}</span><span class="reading-tag-kun">【訓】</span><span class="reading-val">${escapeHtml(kunStr)}</span>${readings.meaning ? `<span class="reading-tag-mean">【意】</span><span class="reading-val">${escapeHtml(readings.meaning)}</span>` : ''}</div>`;
 
     // 音訓読み解答の構造化HTMLビルダー
     const buildReadingsAnswerHtml = () => {
       if (readings.allReadings && readings.allReadings.length > 0) {
-        const items = readings.allReadings.map(r => `
-          <div class="kanji-answer-item">
-            <span class="kanji-answer-label">${escapeHtml(r.label)}:</span>
-            <span class="kanji-answer-val">${escapeHtml(r.reading)}</span>
-          </div>
-        `).join('');
+        const items = readings.allReadings.map(r => `<div class="kanji-answer-item"><span class="kanji-answer-label">${escapeHtml(r.label)}:</span><span class="kanji-answer-val">${escapeHtml(r.reading)}</span></div>`).join('');
         return `<div class="kanji-answer-readings-wrap">${items}</div>`;
       }
       return `<div class="kanji-answer-readings-wrap"><div class="kanji-answer-item"><span class="kanji-answer-val">${escapeHtml(card.back || '—')}</span></div></div>`;
@@ -727,14 +716,12 @@ const StudyManager = {
         const selected = readings.allReadings.length > 0
           ? readings.allReadings[Math.floor(Math.random() * readings.allReadings.length)]
           : null;
-        const promptReading = selected ? `${selected.label}: ${selected.reading}` : (card.back || '—');
+        const readingVal = selected ? escapeHtml(selected.reading) : escapeHtml(card.back || '—');
+        const readingHtml = selected
+          ? `<span class="kanji-reading-label">${escapeHtml(selected.label)}：</span><span class="kanji-reading-value">${readingVal}</span>`
+          : `<span class="kanji-reading-value">${readingVal}</span>`;
         q.targetWord = card.front;
-        q.displayPrompt = `
-          <div class="kanji-prompt-reading">
-            ${escapeHtml(promptReading)}
-          </div>
-          ${readings.meaning ? `<div class="kanji-prompt-meaning">（${escapeHtml(readings.meaning)}）</div>` : ''}
-        `;
+        q.displayPrompt = `<div class="kanji-prompt-reading">${readingHtml}</div>${readings.meaning ? `<div class="kanji-prompt-meaning">（${escapeHtml(readings.meaning)}）</div>` : ''}`;
         q.guideText = '✍️ 漢字一文字を書く';
         q.answerMain = `<span class="target-kanji-huge">${escapeHtml(card.front)}</span>`;
         q.answerSub = q.fullReadingsHtml;
@@ -744,79 +731,36 @@ const StudyManager = {
         const comp = compounds[Math.floor(Math.random() * compounds.length)];
         q.targetWord = comp.word;
         q.selectedCompound = comp;
-        q.displayPrompt = `
-          <div class="kanji-compound-prompt">
-            ${escapeHtml(comp.word)}
-          </div>
-        `;
+        q.displayPrompt = `<div class="kanji-compound-prompt">${escapeHtml(comp.word)}</div>`;
         q.guideText = '🇯🇵 熟語の読みを答える';
-        q.answerMain = `
-          <div class="kanji-compound-reading-answer">
-            ${escapeHtml(comp.reading)}
-          </div>
-          ${comp.meaning ? `<div class="kanji-compound-meaning">意味: ${escapeHtml(comp.meaning)}</div>` : ''}
-        `;
-        q.answerSub = `
-          <div class="kanji-target-sub-box">
-            対象漢字: <strong class="kanji-target-sub-char">${escapeHtml(card.front)}</strong>
-          </div>
-        `;
+        q.answerMain = `<div class="kanji-compound-reading-answer">${escapeHtml(comp.reading)}</div>${comp.meaning ? `<div class="kanji-compound-meaning">意味: ${escapeHtml(comp.meaning)}</div>` : ''}`;
+        q.answerSub = `<div class="kanji-target-sub-box">対象漢字: <strong class="kanji-target-sub-char">${escapeHtml(card.front)}</strong></div>`;
         break;
       }
       case 'read_to_word': {
         const comp = compounds[Math.floor(Math.random() * compounds.length)];
         q.targetWord = comp.word;
         q.selectedCompound = comp;
-        q.displayPrompt = `
-          <div class="kanji-compound-reading-prompt">
-            ${escapeHtml(comp.reading)}
-          </div>
-          ${comp.meaning ? `<div class="kanji-compound-meaning">（意味: ${escapeHtml(comp.meaning)}）</div>` : ''}
-        `;
+        q.displayPrompt = `<div class="kanji-compound-reading-prompt">${escapeHtml(comp.reading)}</div>${comp.meaning ? `<div class="kanji-compound-meaning">（意味: ${escapeHtml(comp.meaning)}）</div>` : ''}`;
         q.guideText = '✍️ 熟語を書く';
-        q.answerMain = `
-          <div class="kanji-compound-answer">
-            ${escapeHtml(comp.word)}
-          </div>
-        `;
-        q.answerSub = `
-          <div class="kanji-compound-sub-info">
-            読み: <strong class="kanji-compound-reading-val">${escapeHtml(comp.reading)}</strong>
-            ${comp.meaning ? ` ｜ 意味: ${escapeHtml(comp.meaning)}` : ''}
-          </div>
-        `;
+        q.answerMain = `<div class="kanji-compound-answer">${escapeHtml(comp.word)}</div>`;
+        q.answerSub = `<div class="kanji-compound-sub-info">読み: <strong class="kanji-compound-reading-val">${escapeHtml(comp.reading)}</strong>${comp.meaning ? ` ｜ 意味: ${escapeHtml(comp.meaning)}` : ''}</div>`;
         break;
       }
       case 'sentence_fill': {
         q.targetWord = sentData ? sentData.target : card.front;
-        q.displayPrompt = `
-          <div class="kanji-sentence-box">
-            ${sentData ? sentData.blankSentence : ''}
-          </div>
-        `;
+        q.displayPrompt = `<div class="kanji-sentence-box">${sentData ? sentData.blankSentence : ''}</div>`;
         q.guideText = '✍️ ［ ］に入る漢字を書く';
-        q.answerMain = `
-          <span class="target-kanji-huge">${escapeHtml(q.targetWord)}</span>
-        `;
+        q.answerMain = `<span class="target-kanji-huge">${escapeHtml(q.targetWord)}</span>`;
         const badgeHtml = (sentData && sentData.contextCompound && sentData.contextCompound.explanation)
           ? `<div class="kanji-compound-badge">${escapeHtml(sentData.contextCompound.explanation)}</div>`
           : '';
-        q.answerSub = `
-          <div class="kanji-sentence-answer-flow">
-            ${sentData ? (sentData.answerSentence || sentData.highlightSentence) : ''}
-          </div>
-          ${badgeHtml}
-          ${q.fullReadingsHtml}
-        `;
+        q.answerSub = `<div class="kanji-sentence-answer-flow">${sentData ? (sentData.answerSentence || sentData.highlightSentence) : ''}</div>${badgeHtml}${q.fullReadingsHtml}`;
         break;
       }
       case 'sentence_read': {
         q.targetWord = sentData ? sentData.target : card.front;
-        q.displayPrompt = `
-          <div class="kanji-sentence-box">
-            ${sentData ? sentData.highlightSentence : ''}
-          </div>
-        `;
+        q.displayPrompt = `<div class="kanji-sentence-box">${sentData ? sentData.highlightSentence : ''}</div>`;
         q.guideText = '🇯🇵 傍線（強調部）の読みを答える';
 
         let matchedReading = '';
@@ -829,20 +773,8 @@ const StudyManager = {
           matchedReading = card.back;
         }
 
-        q.answerMain = `
-          <div class="kanji-sentence-reading-answer">
-            ${escapeHtml(matchedReading)}
-          </div>
-          <div class="kanji-sentence-target-char">
-            （${escapeHtml(q.targetWord)}）
-          </div>
-        `;
-        q.answerSub = `
-          <div class="kanji-sentence-answer-flow">
-            ${sentData ? sentData.highlightSentence : ''}
-          </div>
-          ${q.fullReadingsHtml}
-        `;
+        q.answerMain = `<div class="kanji-sentence-reading-answer">${escapeHtml(matchedReading)}</div><div class="kanji-sentence-target-char">（${escapeHtml(q.targetWord)}）</div>`;
+        q.answerSub = `<div class="kanji-sentence-answer-flow">${sentData ? sentData.highlightSentence : ''}</div>${q.fullReadingsHtml}`;
         break;
       }
       default: {
@@ -1734,7 +1666,7 @@ const StudyManager = {
       const cleanAnswerSub = String(kq.answerSub || '').trim();
       if (!this.isFlipped) {
         questionHtml = `
-          <div class="card-prompt-container">
+          <div class="card-prompt-container kanji-prompt-container">
             <div class="card-prompt-target">${cleanPrompt}</div>
             <div class="card-target-guide">${cleanGuide}</div>
           </div>

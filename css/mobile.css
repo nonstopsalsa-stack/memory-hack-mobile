@@ -21,6 +21,8 @@
   --color-text-sub: #94a3b8;
   --color-text-muted: #64748b;
 
+  --kanji-line-gap: 1.1rem;
+
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -3368,21 +3370,71 @@ html, body {
   box-sizing: border-box;
 }
 
-.kanji-prompt-reading,
+/* 読→字・漢字カード表面の等間隔レイアウト (v2.3.3) */
+.kanji-prompt-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--kanji-line-gap, 1.1rem);
+}
+
+.kanji-prompt-container .card-prompt-target {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--kanji-line-gap, 1.1rem);
+}
+
+.kanji-prompt-container .card-target-guide {
+  margin-top: 0;
+}
+
+.kanji-prompt-reading {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #38bdf8;
+  text-align: center;
+  padding: 0;
+  white-space: normal;
+}
+
+.kanji-reading-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.kanji-reading-value {
+  font-size: 2.3rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #fbbf24;
+}
+
+.kanji-prompt-meaning {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  text-align: center;
+  margin-top: 0;
+  white-space: normal;
+}
+
 .kanji-compound-reading-prompt {
   font-size: 1.6rem;
   font-weight: bold;
   color: #38bdf8;
   text-align: center;
   padding: 8px 0;
+  white-space: normal;
 }
 
-.kanji-prompt-meaning,
 .kanji-compound-meaning {
   font-size: 0.95rem;
   color: #94a3b8;
   text-align: center;
   margin-top: 2px;
+  white-space: normal;
 }
 
 .kanji-compound-prompt,
@@ -3393,6 +3445,7 @@ html, body {
   letter-spacing: 0.08em;
   text-align: center;
   padding: 8px 0;
+  white-space: normal;
 }
 
 .kanji-compound-reading-answer,
@@ -3401,6 +3454,7 @@ html, body {
   font-weight: bold;
   color: #38bdf8;
   text-align: center;
+  white-space: normal;
 }
 
 .kanji-target-sub-box,
@@ -3409,6 +3463,7 @@ html, body {
   color: #94a3b8;
   margin-top: 8px;
   text-align: center;
+  white-space: normal;
 }
 
 .kanji-target-sub-char {
@@ -3427,6 +3482,16 @@ html, body {
   color: #f8fafc;
   margin-top: 4px;
   text-align: center;
+  white-space: normal;
+}
+
+/* bloxfruits テーマ (v2.3.3) */
+[data-theme="bloxfruits"] .kanji-reading-label {
+  color: #94a3b8;
+}
+
+[data-theme="bloxfruits"] .kanji-reading-value {
+  color: #ffd24a;
 }
 
 /* 無一郎テーマ: 漢字カード高視認性スタイル (白飛び防止・濃色スレート) */
@@ -3455,6 +3520,14 @@ html, body {
 [data-theme="muichiro"] .kanji-sentence-reading-answer {
   color: #0d9488 !important;
   text-shadow: none !important;
+}
+
+[data-theme="muichiro"] .kanji-reading-label {
+  color: #475569 !important;
+}
+
+[data-theme="muichiro"] .kanji-reading-value {
+  color: #0f766e !important;
 }
 
 [data-theme="muichiro"] .kanji-prompt-meaning,
@@ -3516,6 +3589,14 @@ html, body {
 [data-theme="light"] .kanji-sentence-reading-answer {
   color: #4f46e5 !important;
   text-shadow: none !important;
+}
+
+[data-theme="light"] .kanji-reading-label {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .kanji-reading-value {
+  color: #4338ca !important;
 }
 
 [data-theme="light"] .kanji-prompt-meaning,
