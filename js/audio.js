@@ -1,6 +1,6 @@
 /**
  * audio.js - MEMORY HACK Mobile 音声エンジン (Web Speech API / TTS)
- * Android Chrome および iOS Safari に対応したタッチアンロック＆発音再生
+ * Android Chrome および iOS Safari に対応したタッチアンロック＆堅牢化発音再生
  */
 
 const AudioManager = {
@@ -9,6 +9,10 @@ const AudioManager = {
   rate: 0.9,
   pitch: 1.0,
   voices: [],
+  activeUtterances: [], // V8 GC回収防止のための強参照配列
+  safetyTimer: null,
+  currentPlayId: 0,
+  _playCounter: 0,
 
   init() {
     if (!this.synth) {
@@ -73,54 +77,200 @@ const AudioManager = {
   },
 
   /**
-   * 英語テキストの発話
+   * テキストを句読点（. , ? ! 改行 および 全角句読点）で文単位に分割 (Sentence Chunking)
+   */
+  splitIntoChunks(text) {
+    if (!text) return [];
+    const clean = String(text).replace(/<[^>]+>/g, ' ').trim();
+    if (!clean) return [];
+
+    // デリミタで分割し、デリミタを直前の文末に結合する方式
+    const parts = clean.split(/([.,?!\n。、！？]+)/);
+    const chunks = [];
+    let current = '';
+
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+      if (!part) continue;
+      if (/^[.,?!\n。、！？]+$/.test(part)) {
+        current += part;
+        if (current.trim()) {
+          chunks.push(current.trim());
+        }
+        current = '';
+      } else {
+        if (current.trim()) {
+          chunks.push(current.trim());
+        }
+        current = part;
+      }
+    }
+    if (current.trim()) {
+      chunks.push(current.trim());
+    }
+
+    return chunks.length > 0 ? chunks : [clean];
+  },
+
+  /**
+   * 音声の発話 (Sentence Chunking 順次キューイング & GC保護 & 自己治癒タイマー内蔵)
    */
   speak(text, options = {}) {
-    if (!this.synth || !text) return;
-
-    this.synth.cancel(); // 前の音声を停止
-
-    const cleanText = text.replace(/<[^>]+>/g, '').trim();
-    if (!cleanText) return;
-
-    const utter = new SpeechSynthesisUtterance(cleanText);
-    utter.lang = options.lang || 'en-US';
-    utter.rate = options.rate || this.rate;
-    utter.pitch = options.pitch || this.pitch;
-
-    const voice = this.getVoice(utter.lang);
-    if (voice) {
-      utter.voice = voice;
-    }
-
-    if (options.onEnd) {
-      utter.onend = options.onEnd;
-    }
-    if (options.onError) {
-      utter.onerror = options.onError;
-    }
-
-    // Android Chrome特有のロングテキストフリーズ防止
-    const resumeTimer = setInterval(() => {
-      if (!this.synth.speaking) {
-        clearInterval(resumeTimer);
-      } else {
-        this.synth.pause();
-        this.synth.resume();
-      }
-    }, 5000);
-
-    utter.onend = () => {
-      clearInterval(resumeTimer);
+    if (!this.synth || !text) {
       if (options.onEnd) options.onEnd();
+      return;
+    }
+
+    // 既存の安全タイマーを解除
+    if (this.safetyTimer) {
+      clearTimeout(this.safetyTimer);
+      this.safetyTimer = null;
+    }
+
+    // サスペンド状態なら復帰
+    if (this.synth.paused) {
+      try { this.synth.resume(); } catch (e) {}
+    }
+
+    const chunks = this.splitIntoChunks(text);
+    if (chunks.length === 0) {
+      if (options.onEnd) options.onEnd();
+      return;
+    }
+
+    // 新しい再生IDを発行（先行する順次再生を安全に無効化）
+    const playId = ++this._playCounter;
+    this.currentPlayId = playId;
+
+    const doSpeak = () => {
+      if (this.currentPlayId !== playId) return;
+
+      // V8エンジンのガベージコレクション（GC）による発話中断を防止するため強参照配列を初期化
+      this.activeUtterances = [];
+
+      const lang = options.lang || 'en-US';
+      const rate = options.rate || this.rate;
+      const pitch = options.pitch || this.pitch;
+      const voice = this.getVoice(lang);
+
+      // 全チャンクの Utterance インスタンスを生成して activeUtterances 配列に保持
+      for (let i = 0; i < chunks.length; i++) {
+        const utter = new SpeechSynthesisUtterance(chunks[i]);
+        utter.lang = lang;
+        utter.rate = options.rate || this.rate;
+        utter.pitch = pitch;
+        if (voice) {
+          utter.voice = voice;
+        }
+        this.activeUtterances.push(utter);
+      }
+
+      let currentIndex = 0;
+
+      const cleanup = () => {
+        if (this.safetyTimer) {
+          clearTimeout(this.safetyTimer);
+          this.safetyTimer = null;
+        }
+        this.activeUtterances = [];
+      };
+
+      const playNextChunk = () => {
+        if (this.currentPlayId !== playId) {
+          cleanup();
+          return;
+        }
+
+        if (currentIndex >= this.activeUtterances.length) {
+          cleanup();
+          if (options.onEnd) options.onEnd();
+          return;
+        }
+
+        const utter = this.activeUtterances[currentIndex];
+        const chunkText = chunks[currentIndex] || '';
+        let chunkFinished = false;
+
+        const finishChunk = (fromTimeout = false) => {
+          if (chunkFinished) return;
+          chunkFinished = true;
+
+          if (this.safetyTimer) {
+            clearTimeout(this.safetyTimer);
+            this.safetyTimer = null;
+          }
+
+          if (this.currentPlayId !== playId) {
+            cleanup();
+            return;
+          }
+
+          currentIndex++;
+          if (currentIndex < this.activeUtterances.length) {
+            playNextChunk();
+          } else {
+            cleanup();
+            if (options.onEnd) options.onEnd();
+          }
+        };
+
+        utter.onend = () => {
+          finishChunk(false);
+        };
+
+        utter.onerror = (e) => {
+          console.warn('[Audio] Utterance error on chunk:', currentIndex, e.error || e);
+          if (options.onError) {
+            try { options.onError(e); } catch (err) {}
+          }
+          finishChunk(false);
+        };
+
+        // 自己治癒タイマー（Chrome/Safariが何らかの理由でonendを発火しなかった場合の保険）
+        const estimatedDurationMs = Math.max(4000, Math.round((chunkText.length * 180) / rate) + 3000);
+        this.safetyTimer = setTimeout(() => {
+          if (!chunkFinished) {
+            console.warn('[Audio] Safety timeout reached for chunk:', currentIndex, '. Resuming synthesis.');
+            try { this.synth.resume(); } catch (e) {}
+            finishChunk(true);
+          }
+        }, estimatedDurationMs);
+
+        try {
+          if (this.synth.paused) {
+            try { this.synth.resume(); } catch (e) {}
+          }
+          this.synth.speak(utter);
+        } catch (err) {
+          console.warn('[Audio] speak() call failed for chunk:', currentIndex, err);
+          finishChunk(false);
+        }
+      };
+
+      playNextChunk();
     };
 
-    this.synth.speak(utter);
+    // Chromiumバグ対策: cancel()直後の同期speak()は新キューを破壊するため、
+    // 先行発話がある場合はcancel()を発行した上で35msのディレイキューを設ける
+    if (this.synth.speaking || this.synth.pending || this.activeUtterances.length > 0) {
+      try { this.synth.cancel(); } catch (e) {}
+      setTimeout(doSpeak, 35);
+    } else {
+      doSpeak();
+    }
   },
 
   stop() {
+    this.currentPlayId = ++this._playCounter;
+    if (this.safetyTimer) {
+      clearTimeout(this.safetyTimer);
+      this.safetyTimer = null;
+    }
+    this.activeUtterances = [];
     if (this.synth) {
-      this.synth.cancel();
+      try { this.synth.cancel(); } catch (e) {}
     }
   }
 };
+
+window.AudioManager = AudioManager;

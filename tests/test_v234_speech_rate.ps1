@@ -93,16 +93,16 @@ $audioManagerRateProp = $audioJs -match "rate:\s*0\.9" -and $audioJs.Contains("u
 Assert-Check "2.5 audio.js supports AudioManager.rate in speak()" $audioManagerRateProp
 
 # -------------------------------------------------------------
-# Phase 3: Version v2.3.4 & PWA Cache Verification
+# Phase 3: Version v2.3.4+ & PWA Cache Verification
 # -------------------------------------------------------------
-Write-Host "`n--- [Phase 3: Version v2.3.4 & PWA Cache Verification] ---" -ForegroundColor Yellow
+Write-Host "`n--- [Phase 3: Version v2.3.4+ & PWA Cache Verification] ---" -ForegroundColor Yellow
 
-Assert-Check "3.1 service-worker.js CACHE_NAME is memory-hack-mobile-v2.3.4" ($sw.Contains("memory-hack-mobile-v2.3.4"))
-Assert-Check "3.2 service-worker.js ASSETS_TO_CACHE has ?v=2.3.4 queries" ($sw.Contains("?v=2.3.4"))
-Assert-Check "3.3 index.html has v2.3.4 brand badge" ($html.Contains('<span class="brand-ver-badge">v2.3.4</span>'))
-Assert-Check "3.4 index.html has v2.3.4 modal subtitle" ($html.Contains('MEMORY HACK Mobile v2.3.4'))
-Assert-Check "3.5 index.html has ?v=2.3.4 asset query strings" (([regex]::Matches($html, '\?v=2\.3\.4')).Count -ge 8)
-Assert-Check "3.6 config.js has version 'v2.3.4'" ($config.Contains('version: "v2.3.4"'))
+Assert-Check "3.1 service-worker.js CACHE_NAME is memory-hack-mobile-v2.3.x" ($sw -match "memory-hack-mobile-v2\.3\.[4-9]")
+Assert-Check "3.2 service-worker.js ASSETS_TO_CACHE has ?v=2.3.x queries" ($sw -match "\?v=2\.3\.[4-9]")
+Assert-Check "3.3 index.html has v2.3.x brand badge" ($html -match '<span class="brand-ver-badge">v2\.3\.[4-9]</span>')
+Assert-Check "3.4 index.html has v2.3.x modal subtitle" ($html -match 'MEMORY HACK Mobile v2\.3\.[4-9]')
+Assert-Check "3.5 index.html has ?v=2.3.x asset query strings" (([regex]::Matches($html, '\?v=2\.3\.[4-9]')).Count -ge 8)
+Assert-Check "3.6 config.js has version 'v2.3.x'" ($config -match 'version:\s*"v2\.3\.[4-9]"')
 
 # -------------------------------------------------------------
 # Phase 4: Headless Browser Interactive Verification

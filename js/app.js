@@ -6,7 +6,7 @@ const App = {
   deferredPrompt: null,
 
   async init() {
-    console.log('[App] MEMORY HACK Mobile v2.3.4 Initializing...');
+    console.log('[App] MEMORY HACK Mobile v2.3.5 Initializing...');
 
     // 0. テーマ初期化 (デフォルトは正式な「ライト」)
     try {
@@ -32,7 +32,7 @@ const App = {
     }
 
     // 起動トースト表示
-    this.showToast('🚀 MEMORY HACK Mobile v2.3.4 準備完了', 'info');
+    this.showToast('🚀 MEMORY HACK Mobile v2.3.5 準備完了', 'info');
 
     // 2. イベントリスナー登録
     this.bindEvents();
@@ -471,7 +471,7 @@ const App = {
 
   registerServiceWorker() {
     if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
-      const swVer = (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.VERSION) ? APP_CONFIG.VERSION : '2.3.4';
+      const swVer = (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.VERSION) ? APP_CONFIG.VERSION : '2.3.5';
       navigator.serviceWorker.register(`./service-worker.js?v=${swVer}`, { updateViaCache: 'none' }).then((reg) => {
         console.log('[SW] Registered successfully:', reg.scope);
         // 起動時に毎回バックグラウンドで最新SWの存在を即時チェック

@@ -10,7 +10,7 @@
  */
 
 const StudyManager = {
-  version: 'v2.3.4',
+  version: 'v2.3.5',
   allCards: [],
   projects: [],
   activeProjectId: 'deck_default',
@@ -1320,7 +1320,8 @@ const StudyManager = {
     };
 
     const frontText = this.currentCard.front || '';
-    const safeTimeout = Math.max(3000, frontText.length * 120 + 2000);
+    const rate = (typeof AudioManager !== 'undefined' && AudioManager.rate) ? AudioManager.rate : 0.9;
+    const safeTimeout = Math.max(5000, Math.round((frontText.length * 180) / rate) + 4000);
     this.autoPlayTimer = setTimeout(onAudioComplete, safeTimeout);
 
     if (typeof AudioManager !== 'undefined' && AudioManager.speak) {
