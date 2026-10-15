@@ -22,7 +22,7 @@
   <meta http-equiv="Expires" content="0">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="css/mobile.css?v=2.3.3">
+  <link rel="stylesheet" href="css/mobile.css?v=2.3.4">
 </head>
 <body>
 
@@ -49,7 +49,7 @@
           <img class="logo-muichiro" src="assets/muichiro_avatar.png" alt="時透無一郎">
         </span>
         <span class="brand-title">MEMORY HACK</span>
-        <span class="brand-ver-badge">v2.3.3</span>
+        <span class="brand-ver-badge">v2.3.4</span>
       </div>
 
       <div class="top-actions">
@@ -224,7 +224,7 @@
       <div class="modal-header">
         <div class="modal-title-wrap">
           <h3 class="modal-title">⚙️ 設定</h3>
-          <span class="modal-subtitle">MEMORY HACK Mobile v2.3.3</span>
+          <span class="modal-subtitle">MEMORY HACK Mobile v2.3.4</span>
         </div>
         <button class="modal-close-btn" onclick="App.closeModal('modal-settings')">✕</button>
       </div>
@@ -257,12 +257,24 @@
           </small>
         </div>
 
-        <!-- ③ 音声自動再生チェックボックス -->
+        <!-- ③ 音声設定ブロック (自動再生 ＆ 発話速度コントロール) -->
         <div class="form-group" style="margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
           <label class="form-checkbox-label">
             <input type="checkbox" id="setting-auto-audio" checked />
             <span>🔊 音声を自動再生する (リスニング出題時・解答表示時)</span>
           </label>
+          <div style="margin-top: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <label for="setting-tts-rate" class="form-label" style="font-weight: 600; font-size: 0.82rem; margin: 0;">🗣️ 音声の再生速度</label>
+              <span id="setting-tts-rate-val" style="font-weight: 700; font-size: 0.85rem; color: var(--color-cyan, #06b6d4);">0.90x</span>
+            </div>
+            <input type="range" id="setting-tts-rate" min="0.6" max="1.4" step="0.05" value="0.9" style="width: 100%; accent-color: var(--color-cyan, #06b6d4); cursor: pointer;" />
+            <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--color-text-muted, #94a3b8); margin-top: 2px;">
+              <span>ゆっくり (0.6x)</span>
+              <span>標準 (0.9x)</span>
+              <span>高速 (1.4x)</span>
+            </div>
+          </div>
         </div>
 
         <!-- ④ キャッシュ全消去 -->
@@ -305,14 +317,14 @@
     </div>
   </div>
 
-  <!-- Scripts (Cache-busted with ?v=2.3.3) -->
-  <script src="js/config.js?v=2.3.3"></script>
-  <script src="js/storage.js?v=2.3.3"></script>
-  <script src="js/srs.js?v=2.3.3"></script>
-  <script src="js/hierarchy.js?v=2.3.3"></script>
-  <script src="js/audio.js?v=2.3.3"></script>
-  <script src="js/sync.js?v=2.3.3"></script>
-  <script src="js/study.js?v=2.3.3"></script>
-  <script src="js/app.js?v=2.3.3"></script>
+  <!-- Scripts (Cache-busted with ?v=2.3.4) -->
+  <script src="js/config.js?v=2.3.4"></script>
+  <script src="js/storage.js?v=2.3.4"></script>
+  <script src="js/srs.js?v=2.3.4"></script>
+  <script src="js/hierarchy.js?v=2.3.4"></script>
+  <script src="js/audio.js?v=2.3.4"></script>
+  <script src="js/sync.js?v=2.3.4"></script>
+  <script src="js/study.js?v=2.3.4"></script>
+  <script src="js/app.js?v=2.3.4"></script>
 </body>
 </html>

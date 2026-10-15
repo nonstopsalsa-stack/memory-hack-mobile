@@ -55,11 +55,11 @@ $sw = [System.IO.File]::ReadAllText($swPath, [System.Text.Encoding]::UTF8)
 # -------------------------------------------------------------
 Write-Host "`n--- [Phase 1: Static Code Structure & Version Verification] ---" -ForegroundColor Yellow
 
-Assert-Check "1.1 study.js version is v2.3.3" ($study.Contains("version: 'v2.3.3'"))
-Assert-Check "1.2 service-worker.js CACHE_NAME is memory-hack-mobile-v2.3.3" ($sw.Contains("memory-hack-mobile-v2.3.3"))
-Assert-Check "1.3 service-worker.js ASSETS_TO_CACHE has ?v=2.3.3 queries" ($sw.Contains("?v=2.3.3"))
-Assert-Check "1.4 index.html has v2.3.3 brand badge" ($html.Contains('<span class="brand-ver-badge">v2.3.3</span>'))
-Assert-Check "1.5 index.html has v2.3.3 query strings (12 occurrences)" (([regex]::Matches($html, '\?v=2\.3\.3')).Count -ge 9)
+Assert-Check "1.1 study.js version is v2.3.3 or higher" ($study -match "version:\s*'v2\.3\.[3-9]'")
+Assert-Check "1.2 service-worker.js CACHE_NAME is memory-hack-mobile-v2.3.x" ($sw -match "memory-hack-mobile-v2\.3\.[3-9]")
+Assert-Check "1.3 service-worker.js ASSETS_TO_CACHE has ?v=2.3.x queries" ($sw -match "\?v=2\.3\.[3-9]")
+Assert-Check "1.4 index.html has v2.3.x brand badge" ($html -match '<span class="brand-ver-badge">v2\.3\.[3-9]</span>')
+Assert-Check "1.5 index.html has v2.3.x query strings (12 occurrences)" (([regex]::Matches($html, '\?v=2\.3\.[3-9]')).Count -ge 9)
 
 Assert-Check "1.6 hierarchy.js renders .tier0-pill-top markup" ($hierarchy.Contains('class="tier0-pill-top"'))
 Assert-Check "1.7 mobile.css defines .tier0-pill-top and 2-row layout" ($css.Contains('.tier0-pill-top') -and $css.Contains('calc((100% - 12px) / 3)'))

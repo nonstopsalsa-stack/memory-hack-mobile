@@ -6,7 +6,7 @@ const App = {
   deferredPrompt: null,
 
   async init() {
-    console.log('[App] MEMORY HACK Mobile v2.3.1 Initializing...');
+    console.log('[App] MEMORY HACK Mobile v2.3.4 Initializing...');
 
     // 0. テーマ初期化 (デフォルトは正式な「ライト」)
     try {
@@ -19,7 +19,11 @@ const App = {
 
     // 1. 各マネージャーの初期化
     try {
-      if (typeof AudioManager !== 'undefined') AudioManager.init();
+      if (typeof AudioManager !== 'undefined') {
+        AudioManager.init();
+        const savedRate = await Storage.getSetting('tts_rate', 0.9);
+        AudioManager.rate = parseFloat(savedRate) || 0.9;
+      }
       if (typeof SyncManager !== 'undefined') await SyncManager.init();
       if (typeof StudyManager !== 'undefined') await StudyManager.init();
       await this.updateProjectPill();
@@ -28,7 +32,7 @@ const App = {
     }
 
     // 起動トースト表示
-    this.showToast('🚀 MEMORY HACK Mobile v2.3.1 準備完了', 'info');
+    this.showToast('🚀 MEMORY HACK Mobile v2.3.4 準備完了', 'info');
 
     // 2. イベントリスナー登録
     this.bindEvents();
@@ -67,6 +71,16 @@ const App = {
         if (e.target && e.target.name === 'pattern_checkbox') {
           this.onPatternChange();
         }
+      });
+    }
+
+    // 音声再生速度スライダーリアルタイム更新
+    const rateSlider = document.getElementById('setting-tts-rate');
+    const rateValLabel = document.getElementById('setting-tts-rate-val');
+    if (rateSlider && rateValLabel) {
+      rateSlider.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        rateValLabel.textContent = `${val.toFixed(2)}x`;
       });
     }
 
@@ -375,6 +389,15 @@ const App = {
       await Storage.saveSetting('study_auto_play_audio', autoAudioCb.checked);
     }
 
+    const rateSlider = document.getElementById('setting-tts-rate');
+    if (rateSlider) {
+      const rateVal = parseFloat(rateSlider.value) || 0.9;
+      if (typeof AudioManager !== 'undefined') {
+        AudioManager.rate = rateVal;
+      }
+      await Storage.saveSetting('tts_rate', rateVal);
+    }
+
     const profSelect = document.getElementById('setting-device-profile');
     if (profSelect) {
       await Storage.saveSetting('deviceProfile', profSelect.value);
@@ -397,6 +420,17 @@ const App = {
     const autoAudioCb = document.getElementById('setting-auto-audio');
     if (autoAudioCb) {
       autoAudioCb.checked = StudyManager.autoPlayAudio;
+    }
+    const rateSlider = document.getElementById('setting-tts-rate');
+    const rateValLabel = document.getElementById('setting-tts-rate-val');
+    if (rateSlider) {
+      const currentRate = (typeof AudioManager !== 'undefined' && AudioManager.rate)
+        ? AudioManager.rate
+        : await Storage.getSetting('tts_rate', 0.9);
+      rateSlider.value = currentRate;
+      if (rateValLabel) {
+        rateValLabel.textContent = `${parseFloat(currentRate).toFixed(2)}x`;
+      }
     }
     const profSelect = document.getElementById('setting-device-profile');
     if (profSelect) {
@@ -437,7 +471,7 @@ const App = {
 
   registerServiceWorker() {
     if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
-      const swVer = (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.VERSION) ? APP_CONFIG.VERSION : '2.2.7';
+      const swVer = (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.VERSION) ? APP_CONFIG.VERSION : '2.3.4';
       navigator.serviceWorker.register(`./service-worker.js?v=${swVer}`, { updateViaCache: 'none' }).then((reg) => {
         console.log('[SW] Registered successfully:', reg.scope);
         // 起動時に毎回バックグラウンドで最新SWの存在を即時チェック
